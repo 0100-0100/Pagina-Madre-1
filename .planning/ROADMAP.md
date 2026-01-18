@@ -25,7 +25,7 @@ This roadmap delivers a secure Django authentication portal in three focused pha
 **Plans:** 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md — Configure infrastructure (requirements, .gitignore, .env, settings)
+- [x] 01-01-PLAN.md — Configure infrastructure (requirements, .gitignore, .env, settings)
 
 ---
 
@@ -67,7 +67,7 @@ Plans:
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
-| 1 - Foundation | Not started | — |
+| 1 - Foundation | ✓ Complete | 2026-01-18 |
 | 2 - Authentication System | Not started | — |
 | 3 - Protected Portal | Not started | — |
 

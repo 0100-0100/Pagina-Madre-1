@@ -24,9 +24,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: SQLite database (default Django)
-- [ ] **INFRA-02**: Environment-based SECRET_KEY (.env file)
-- [ ] **INFRA-03**: .gitignore for Python/Django project
+- [x] **INFRA-01**: SQLite database (default Django)
+- [x] **INFRA-02**: Environment-based SECRET_KEY (.env file)
+- [x] **INFRA-03**: .gitignore for Python/Django project
 
 ## v2 Requirements
 
@@ -74,9 +74,9 @@ Which phases cover which requirements. Updated by create-roadmap.
 | PAGE-01 | Phase 2 | Pending |
 | PAGE-02 | Phase 2 | Pending |
 | PAGE-03 | Phase 3 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 12 total
@@ -85,4 +85,4 @@ Which phases cover which requirements. Updated by create-roadmap.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-18 after roadmap creation*
+*Last updated: 2026-01-18 after Phase 1 completion*
