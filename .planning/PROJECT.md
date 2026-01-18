@@ -2,72 +2,77 @@
 
 ## What This Is
 
-A Django-based authentication portal for external users. Users must register with their Colombian cédula, phone number, and accept data policies before accessing the application. This is the foundation for a larger application — starting with secure, validated user authentication.
+A Django-based user portal with authentication. External users can register with their Colombian cédula, phone number, and personal details, then log in to access protected pages. This is the foundation for a larger application — all routes require authentication, with a clean login/register flow as the entry point.
 
 ## Core Value
 
-Users can securely register and authenticate with validated Colombian identity information before accessing protected content.
+Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
 ## Requirements
 
 ### Validated
 
 - ✓ Django project scaffold — existing
-- ✓ Codebase mapped — existing
+- ✓ WSGI/ASGI entry points configured — existing
 
 ### Active
 
 - [ ] All unauthenticated GET requests redirect to login page
-- [ ] Login page with email/username and password authentication
-- [ ] Registration page with: Nombre Completo, Cédula, Phone, Password, Data policy checkbox
-- [ ] Colombian cédula validation (6-10 digit format)
-- [ ] Colombian phone validation (+57 mobile format)
-- [ ] Data policy acceptance checkbox (required, placeholder text for now)
-- [ ] User saved to database on registration, can login immediately
-- [ ] Home page after login with logout button
-- [ ] Logout redirects back to login page
-- [ ] Secure session management (CSRF, secure cookies, password hashing)
+- [ ] User registration with: Nombre Completo, Cédula (Colombian format validated), Phone, data policy acceptance
+- [ ] User can log in with email/username and password
+- [ ] User can log in immediately after registration
+- [ ] Home page displays after successful login
+- [ ] Logout button on home page
 - [ ] Environment-based configuration (secrets not in code)
-- [ ] Production-ready database configuration (PostgreSQL)
+- [ ] Production-ready security (HTTPS, secure cookies, CSRF)
+- [ ] PostgreSQL database configuration for production
+- [ ] AWS Elastic Beanstalk deployment configuration
 
 ### Out of Scope
 
-- Email verification — not needed for v1, can add later
-- Password reset flow — deferred to v2
-- OAuth/social login — unnecessary complexity for v1
-- Two-factor authentication — deferred to v2
-- User profile editing — v2 feature
-- Admin dashboard customization — Django admin sufficient for now
+- OAuth/social login — adds complexity, not needed for v1
+- Email verification — can add later if needed
+- Password reset via email — can add later
+- 2FA/MFA — defer to future version
+- User profile editing — v1 is just auth flow
+- Admin dashboard customization — Django admin is sufficient
 
 ## Context
 
-**Existing codebase:** Django 6.0.1 project with placeholder name "___". Fresh scaffold with no apps, no custom models, no tests. Security concerns identified: hardcoded SECRET_KEY, DEBUG=True, missing .gitignore.
+**Technical environment:**
+- Django 5.x (note: requirements.txt incorrectly specifies 6.0.1 which doesn't exist)
+- Python 3.14
+- Existing project scaffold with placeholder name "___"
+- Virtual environment in `.venv/`
+- No apps created yet, just Django project structure
 
-**Target users:** External/public users (Colombian citizens). Small scale initially (<100 users), but architecture should support growth.
+**User context:**
+- External/public users registering
+- Small scale initially (<100 users)
+- Colombian users (cédula validation for Colombia)
 
-**Deployment target:** AWS (specific service TBD — likely Elastic Beanstalk or ECS).
-
-**Validation requirements:**
-- Colombian cédula: 6-10 numeric digits
-- Colombian phone: +57 followed by 10 digits (mobile starts with 3)
+**Security context:**
+- Storing PII (cédula, phone, name) — requires proper data handling
+- Data policy acceptance required at registration
+- Standard password requirements (Django defaults)
 
 ## Constraints
 
-- **Tech stack**: Django 5.x (fix version in requirements.txt — 6.x doesn't exist)
-- **Database**: PostgreSQL for production, SQLite acceptable for local dev
-- **Security**: Must use environment variables for secrets, no hardcoded credentials
-- **Language**: Spanish UI (field labels, error messages, buttons)
-- **Compatibility**: Modern browsers, mobile-responsive
+- **Tech stack**: Django + PostgreSQL — already chosen, scaffold exists
+- **Deployment**: AWS (Elastic Beanstalk recommended for simplicity)
+- **Project name**: Keep as `___` despite being unconventional
+- **Cédula format**: Colombian cédula de ciudadanía (6-10 digits)
+- **Existing code**: Must work with current `___/` project structure
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Keep project name "___" | User preference despite unconventional naming | — Pending |
-| Django over alternatives | Built-in auth, batteries included, good for expansion | — Pending |
-| Custom User model | Need extra fields (cedula, phone, full_name) | — Pending |
-| Session-based auth | Simpler than JWT for server-rendered pages | — Pending |
-| PostgreSQL for production | Robust, AWS RDS support, better than SQLite | — Pending |
+| Django over alternatives | Built-in auth, secure defaults, good for expansion | — Pending |
+| Extended User model | Custom fields (cedula, phone) needed | — Pending |
+| Elastic Beanstalk | Simple deployment, managed SSL, auto-scaling | — Pending |
+| Login-required middleware | Cleaner than decorating every view | — Pending |
+| PostgreSQL for production | SQLite not suitable for concurrent users | — Pending |
 
 ---
 *Last updated: 2026-01-18 after initialization*
