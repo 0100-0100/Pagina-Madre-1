@@ -17,16 +17,14 @@ Users can securely register and authenticate to access the portal. If authentica
 
 ### Active
 
-- [ ] All unauthenticated GET requests redirect to login page
+- [ ] All unauthenticated requests redirect to login page
 - [ ] User registration with: Nombre Completo, Cédula (Colombian format validated), Phone, data policy acceptance
-- [ ] User can log in with email/username and password
+- [ ] User can log in with username and password
+- [ ] "Remember me" option for extended sessions
 - [ ] User can log in immediately after registration
-- [ ] Home page displays after successful login
-- [ ] Logout button on home page
-- [ ] Environment-based configuration (secrets not in code)
-- [ ] Production-ready security (HTTPS, secure cookies, CSRF)
-- [ ] PostgreSQL database configuration for production
-- [ ] AWS Elastic Beanstalk deployment configuration
+- [ ] Home page displays after successful login with logout button
+- [ ] Environment-based SECRET_KEY (.env file)
+- [ ] .gitignore for Python/Django project
 
 ### Out of Scope
 
@@ -36,19 +34,22 @@ Users can securely register and authenticate to access the portal. If authentica
 - 2FA/MFA — defer to future version
 - User profile editing — v1 is just auth flow
 - Admin dashboard customization — Django admin is sufficient
+- PostgreSQL — SQLite sufficient for small scale, defer to production setup
+- Cloud deployment configuration — handle after local development complete
 
 ## Context
 
 **Technical environment:**
-- Django 5.x (note: requirements.txt incorrectly specifies 6.0.1 which doesn't exist)
+- Django 5.x (note: requirements.txt needs correction)
 - Python 3.14
-- Existing project scaffold with placeholder name "___"
+- Existing project scaffold with name "___"
 - Virtual environment in `.venv/`
 - No apps created yet, just Django project structure
+- SQLite database for development and initial deployment
 
 **User context:**
 - External/public users registering
-- Small scale initially (<100 users)
+- Small scale (<100 users)
 - Colombian users (cédula validation for Colombia)
 
 **Security context:**
@@ -58,11 +59,12 @@ Users can securely register and authenticate to access the portal. If authentica
 
 ## Constraints
 
-- **Tech stack**: Django + PostgreSQL — already chosen, scaffold exists
-- **Deployment**: AWS (Elastic Beanstalk recommended for simplicity)
-- **Project name**: Keep as `___` despite being unconventional
+- **Tech stack**: Django + SQLite — minimal infrastructure
+- **Deployment**: Local first, production infrastructure later
+- **Project name**: Keep as `___`
 - **Cédula format**: Colombian cédula de ciudadanía (6-10 digits)
 - **Existing code**: Must work with current `___/` project structure
+- **Cost**: Minimize infrastructure costs
 
 ## Key Decisions
 
@@ -70,9 +72,9 @@ Users can securely register and authenticate to access the portal. If authentica
 |----------|-----------|---------|
 | Django over alternatives | Built-in auth, secure defaults, good for expansion | — Pending |
 | Extended User model | Custom fields (cedula, phone) needed | — Pending |
-| Elastic Beanstalk | Simple deployment, managed SSL, auto-scaling | — Pending |
+| SQLite for now | Sufficient for <100 users, minimal setup | — Pending |
 | Login-required middleware | Cleaner than decorating every view | — Pending |
-| PostgreSQL for production | SQLite not suitable for concurrent users | — Pending |
+| Local-first development | Ship working product before production infrastructure | — Pending |
 
 ---
-*Last updated: 2026-01-18 after initialization*
+*Last updated: 2026-01-18 after requirements simplification*
