@@ -22,7 +22,10 @@ This roadmap delivers a secure Django authentication portal in three focused pha
 3. Git repository excludes sensitive files (.env, db.sqlite3, __pycache__, .venv)
 4. SQLite database is configured and migrations run successfully
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Configure infrastructure (requirements, .gitignore, .env, settings)
 
 ---
 
