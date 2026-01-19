@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 8 - Home Page Referral UI ✓
+Phase: 9 - Profile Page
 Plan: 01 of 01 complete
-Status: Phase 8 complete
-Last activity: 2026-01-19 - Completed 08-01-PLAN.md
+Status: Phase 9 complete
+Last activity: 2026-01-19 - Completed 09-01-PLAN.md
 
-Progress: [#####-----] 50% (2/4 phases complete in v1.2)
+Progress: [########--] 75% (3/4 phases complete in v1.2)
 
 ## Current Milestone: v1.2 Referrals
 
@@ -23,12 +23,12 @@ Progress: [#####-----] 50% (2/4 phases complete in v1.2)
 **Phases:**
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | ✓ Complete |
-| 8 | Home Page Referral UI | 4 | ✓ Complete |
-| 9 | Profile Page | 4 | Pending |
+| 7 | Referral Model & Registration | 7 | Complete |
+| 8 | Home Page Referral UI | 4 | Complete |
+| 9 | Profile Page | 4 | Complete |
 | 10 | Referidos Page | 2 | Pending |
 
-**Next:** Plan Phase 9 with `/gsd:plan-phase 9`
+**Next:** Plan Phase 10 with `/gsd:plan-phase 10`
 
 ## Milestones Shipped
 
@@ -50,6 +50,8 @@ See: .planning/MILESTONES.md for full history
 - SeparateDatabaseAndState for SQLite unique constraint migrations
 - Three-step migration for unique fields: add nullable, populate, add constraint
 - Use filter().first() for graceful referral lookup (no exception on missing)
+- ProfileForm excludes cedula (read-only display only)
+- Password change redirects to profile page with success toast
 
 ### v1.2 Technical Notes
 
@@ -63,6 +65,8 @@ See: .planning/MILESTONES.md for full history
 - Use navigator.clipboard API for clipboard copy with fallback alert
 - Bootstrap Icons 1.13.1 via jsDelivr CDN for navigation icons
 - Placeholder routes (return "Coming soon") prevent NoReverseMatch errors
+- Form instance binding: ProfileForm(instance=request.user)
+- PasswordChangeView extension with success message
 
 ### Pending Todos
 
@@ -75,10 +79,10 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 8 complete
-Resume file: .planning/phases/08-home-page-referral-ui/08-01-SUMMARY.md
-Next: `/gsd:plan-phase 9` to plan Profile Page
+Stopped at: Phase 9 complete
+Resume file: .planning/phases/09-profile-page/09-01-SUMMARY.md
+Next: `/gsd:plan-phase 10` to plan Referidos Page
 
 ## To Resume Development
 
-Phase 8 complete. Home page now displays referral count with progress bar and copy-to-clipboard button for referral link. Navbar has Perfil and Referidos links (placeholder routes). Ready to proceed to Phase 9.
+Phase 9 complete. Profile page at /perfil/ allows editing nombre, phone, and referral_goal. Password change at /cambiar-password/ with Django's secure handling. Ready to proceed to Phase 10 (Referidos Page).
