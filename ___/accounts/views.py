@@ -105,3 +105,10 @@ class CustomPasswordChangeView(PasswordChangeView):
         """Add success message after password change"""
         messages.success(self.request, 'Contrasena actualizada correctamente')
         return super().form_valid(form)
+
+
+@login_required
+def referidos_view(request):
+    """View showing users referred by the current user."""
+    referrals = request.user.referrals.all().order_by('-date_joined')
+    return render(request, 'referidos.html', {'referrals': referrals})
