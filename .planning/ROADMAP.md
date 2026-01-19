@@ -54,10 +54,10 @@ Transform the functional but minimal authentication portal into a professional, 
   2. All existing pages extend base.html and render correctly
   3. Pages display appropriately on mobile viewport (375px)
 **Research flag**: Unlikely (standard Bootstrap CDN patterns)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: Create base template with Bootstrap CDN and update existing templates
+- [ ] 04-01-PLAN.md — Create base template with Bootstrap CDN and migrate existing templates to inheritance pattern
 
 #### Phase 5: Styled Auth Pages
 **Goal**: Professional login and registration forms with validation feedback
