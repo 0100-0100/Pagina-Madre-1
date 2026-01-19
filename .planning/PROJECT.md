@@ -8,6 +8,16 @@ A Django-based authentication portal for Colombian users. External users can reg
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
+## Current Milestone: v1.1 UI Polish
+
+**Goal:** Apply Bootstrap 5 styling to all pages for a professional, responsive look
+
+**Target features:**
+- Bootstrap 5 integration via CDN
+- Styled login page with modern, responsive form
+- Styled register page with clean field layouts
+- Styled home page with navigation bar and user greeting
+
 ## Current State
 
 **Shipped:** v1.0 MVP (2026-01-19)
@@ -39,7 +49,12 @@ Users can securely register and authenticate to access the portal. If authentica
 
 ### Active
 
-(None yet — run `/gsd:define-requirements` for next milestone)
+- [ ] Bootstrap 5 CSS framework integrated via CDN
+- [ ] Base template with Bootstrap includes for all pages
+- [ ] Login page styled with Bootstrap components
+- [ ] Register page styled with Bootstrap form layouts
+- [ ] Home page styled with navigation bar and Bootstrap components
+- [ ] Responsive design (mobile-friendly) across all pages
 
 ### Out of Scope
 
@@ -51,6 +66,8 @@ Users can securely register and authenticate to access the portal. If authentica
 - Admin dashboard customization — Django admin is sufficient
 - PostgreSQL — SQLite sufficient for small scale, defer to production setup
 - Cloud deployment configuration — handle after local development complete
+- Custom CSS/design system — using Bootstrap 5 for simplicity
+- Local Bootstrap files — CDN is acceptable for now
 
 ## Context
 
@@ -65,14 +82,20 @@ Users can securely register and authenticate to access the portal. If authentica
 - Session security: HTTPONLY, SAMESITE cookies
 - CSRF protection on all forms
 
+**UI context:**
+- Current pages functional but minimal styling
+- Spanish language labels already in place
+- 3 pages need styling: login, register, home
+
 ## Constraints
 
-- **Tech stack**: Django + SQLite — minimal infrastructure
+- **Tech stack**: Django + SQLite + Bootstrap 5 CDN
 - **Deployment**: Local first, production infrastructure later
 - **Project name**: Keep as `___`
 - **Cédula format**: Colombian cédula de ciudadanía (6-10 digits)
 - **Existing code**: Must work with current `___/` project structure
 - **Cost**: Minimize infrastructure costs
+- **Functionality**: Keep existing auth functionality intact — purely visual improvements
 
 ## Key Decisions
 
@@ -85,6 +108,7 @@ Users can securely register and authenticate to access the portal. If authentica
 | Remember me via session.set_expiry() | Flexible: 0 for browser close, 1209600 for 14 days | ✓ Good |
 | SQLite for now | Sufficient for <100 users, minimal setup | ✓ Good |
 | Local-first development | Ship working product before production infrastructure | ✓ Good |
+| Bootstrap 5 via CDN | Quick setup, no build step, widely supported | — Pending |
 
 ---
-*Last updated: 2026-01-19 after v1.0 milestone*
+*Last updated: 2026-01-19 after starting v1.1 milestone*
