@@ -20,7 +20,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **PAGE-01**: Login page with cedula, password, remember me fields
 - [x] **PAGE-02**: Registration page with all required fields
-- [ ] **PAGE-03**: Home page with logout button (post-login landing)
+- [x] **PAGE-03**: Home page with logout button (post-login landing)
 
 ### Infrastructure
 
@@ -73,7 +73,7 @@ Which phases cover which requirements. Updated by create-roadmap.
 | AUTH-06 | Phase 2 | Complete |
 | PAGE-01 | Phase 2 | Complete |
 | PAGE-02 | Phase 2 | Complete |
-| PAGE-03 | Phase 3 | Pending |
+| PAGE-03 | Phase 3 | Complete |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
@@ -85,4 +85,4 @@ Which phases cover which requirements. Updated by create-roadmap.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-19 after Phase 2 completion*
+*Last updated: 2026-01-19 after Phase 3 completion*
