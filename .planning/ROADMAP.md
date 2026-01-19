@@ -71,6 +71,11 @@ Plans:
 
 **Dependencies:** Phase 7 (referral_goal field exists), Phase 8 (navigation link exists)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — Profile editing page and password change page
+
 **Requirements:**
 - PROF-01: Profile page allows editing nombre_completo
 - PROF-02: Profile page allows editing telefono
@@ -107,7 +112,7 @@ Plans:
 |-------|------|--------------|--------|
 | 7 | Referral Model & Registration | 7 | ✓ Complete |
 | 8 | Home Page Referral UI | 4 | ✓ Complete |
-| 9 | Profile Page | 4 | Pending |
+| 9 | Profile Page | 4 | Planned |
 | 10 | Referidos Page | 2 | Pending |
 
 **Total:** 17 requirements across 4 phases
