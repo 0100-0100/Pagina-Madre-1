@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
+from django.http import HttpResponse
 from .forms import CustomUserCreationForm
 
 
@@ -36,8 +37,24 @@ def register(request):
 
 @login_required
 def home(request):
-    """Home page view"""
-    return render(request, 'home.html', {'user': request.user})
+    """Home page view with referral statistics."""
+    referral_count = request.user.referrals.count()
+    referral_goal = request.user.referral_goal
+    progress_percent = min(100, int((referral_count / referral_goal) * 100)) if referral_goal > 0 else 100
+    referral_url = request.build_absolute_uri(reverse('register') + f'?ref={request.user.referral_code}')
+
+    return render(request, 'home.html', {
+        'user': request.user,
+        'referral_count': referral_count,
+        'referral_goal': referral_goal,
+        'progress_percent': progress_percent,
+        'referral_url': referral_url,
+    })
+
+
+def placeholder_view(request):
+    """Placeholder view for routes not yet implemented."""
+    return HttpResponse("Coming soon", status=200)
 
 
 class CustomLoginView(LoginView):
