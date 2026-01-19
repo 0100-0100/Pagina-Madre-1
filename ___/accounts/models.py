@@ -1,6 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.crypto import get_random_string
+
+
+def generate_referral_code():
+    """Generate unique 8-char alphanumeric referral code."""
+    return get_random_string(length=8)
 
 
 def validate_cedula(value):
@@ -29,6 +35,28 @@ class CustomUser(AbstractUser):
     data_policy_accepted = models.BooleanField(
         default=False,
         verbose_name='Acepto la politica de datos'
+    )
+
+    referral_code = models.CharField(
+        max_length=8,
+        unique=True,
+        editable=False,
+        default=generate_referral_code,
+        verbose_name='Codigo de referido'
+    )
+
+    referred_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referrals',
+        verbose_name='Referido por'
+    )
+
+    referral_goal = models.PositiveIntegerField(
+        default=10,
+        verbose_name='Meta de referidos'
     )
 
     def __str__(self):
