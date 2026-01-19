@@ -38,12 +38,16 @@
                                        id="{{ form.username.id_for_label }}"
                                        placeholder="Ingrese su cédula"
                                        {% if form.username.value %}value="{{ form.username.value }}"{% endif %}
+                                       pattern="[0-9]{6,10}"
+                                       maxlength="10"
+                                       inputmode="numeric"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="La cédula debe tener entre 6 y 10 dígitos numéricos"
                                        required>
-                                {% if form.username.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.username.errors.0 }}
-                                    </div>
-                                {% endif %}
+                                <div class="invalid-feedback">
+                                    {% if form.username.errors %}{{ form.username.errors.0 }}{% else %}La cédula debe tener entre 6 y 10 dígitos numéricos{% endif %}
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -53,12 +57,13 @@
                                        class="form-control{% if form.password.errors %} is-invalid{% endif %}"
                                        id="{{ form.password.id_for_label }}"
                                        placeholder="Ingrese su contraseña"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Ingrese su contraseña"
                                        required>
-                                {% if form.password.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.password.errors.0 }}
-                                    </div>
-                                {% endif %}
+                                <div class="invalid-feedback">
+                                    {% if form.password.errors %}{{ form.password.errors.0 }}{% else %}Por favor ingrese su contraseña{% endif %}
+                                </div>
                             </div>
 
                             <div class="form-check mb-3">
@@ -86,4 +91,151 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    // Debounce function - validates after user stops typing
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Validate cédula field (6-10 numeric digits)
+    function validateCedula(input) {
+        const value = input.value.trim();
+        const isValid = /^[0-9]{6,10}$/.test(value);
+        const isEmpty = value === '';
+
+        if (isEmpty) {
+            // Don't show error for empty field until form submit
+            input.classList.remove('is-invalid', 'is-valid');
+        } else if (isValid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    // Validate password field (not empty)
+    function validatePassword(input) {
+        const value = input.value;
+        const isEmpty = value === '';
+
+        if (isEmpty) {
+            input.classList.remove('is-invalid', 'is-valid');
+        } else {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+    }
+
+    // Get form fields
+    const cedulaField = document.getElementById('id_username');
+    const passwordField = document.getElementById('id_password');
+
+    // Add debounced validation listeners (1.5 seconds after last keypress)
+    if (cedulaField) {
+        const debouncedCedulaValidation = debounce(function() {
+            validateCedula(cedulaField);
+        }, 1500);
+
+        // Filter non-numeric input and enforce max 10 digits
+        cedulaField.addEventListener('input', function(e) {
+            // Remove any non-numeric characters
+            const numericOnly = this.value.replace(/[^0-9]/g, '');
+            // Limit to 10 characters
+            this.value = numericOnly.slice(0, 10);
+            // Trigger debounced validation
+            debouncedCedulaValidation();
+        });
+
+        cedulaField.addEventListener('blur', function() {
+            if (this.value.trim() !== '') {
+                validateCedula(this);
+            }
+        });
+
+        // Prevent non-numeric keys from being entered
+        cedulaField.addEventListener('keypress', function(e) {
+            // Allow: backspace, delete, tab, escape, enter
+            if ([8, 9, 27, 13, 46].includes(e.keyCode)) {
+                return;
+            }
+            // Block if not a number (0-9)
+            if (e.key < '0' || e.key > '9') {
+                e.preventDefault();
+            }
+        });
+
+        // Handle paste events - filter non-numeric
+        cedulaField.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const numericOnly = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
+            const currentValue = this.value;
+            const newValue = (currentValue + numericOnly).slice(0, 10);
+            this.value = newValue;
+            debouncedCedulaValidation();
+        });
+    }
+
+    if (passwordField) {
+        const debouncedPasswordValidation = debounce(function() {
+            validatePassword(passwordField);
+        }, 1500);
+
+        passwordField.addEventListener('input', debouncedPasswordValidation);
+        passwordField.addEventListener('blur', function() {
+            if (this.value !== '') {
+                validatePassword(this);
+            }
+        });
+    }
+
+    // Validate on form submit
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+
+            if (cedulaField) {
+                validateCedula(cedulaField);
+                if (cedulaField.classList.contains('is-invalid') || cedulaField.value.trim() === '') {
+                    if (cedulaField.value.trim() === '') {
+                        cedulaField.classList.add('is-invalid');
+                    }
+                    isValid = false;
+                }
+            }
+
+            if (passwordField && passwordField.value === '') {
+                passwordField.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+    }
+})();
+</script>
 {% endblock %}

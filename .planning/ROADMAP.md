@@ -7,7 +7,7 @@ Transform the functional but minimal authentication portal into a professional, 
 ## Milestones
 
 - ✅ **v1.0 MVP** - Phases 1-3 (shipped 2026-01-19)
-- 🚧 **v1.1 UI Polish** - Phases 4-6 (in progress)
+- ✅ **v1.1 UI Polish** - Phases 4-6 (shipped 2026-01-19)
 
 ## Phases
 
@@ -73,8 +73,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Create LoginForm with Bootstrap classes and style login template with card layout
-- [ ] 05-02-PLAN.md — Update CustomUserCreationForm with Bootstrap classes and style registration template with manual field rendering
+- [x] 05-01-PLAN.md — Create LoginForm with Bootstrap classes and style login template with card layout
+- [x] 05-02-PLAN.md — Update CustomUserCreationForm with Bootstrap classes and style registration template with manual field rendering
 
 #### Phase 6: Styled Home Page
 **Goal**: Welcoming dashboard with navigation bar
@@ -88,7 +88,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Add navbar and style home page content
+- [x] 06-01: Add navbar and style home page content
 
 ## Progress
 
@@ -101,5 +101,5 @@ Phases execute in numeric order: 4 → 5 → 6
 | 2. Authentication System | v1.0 | 3/3 | Complete | 2026-01-18 |
 | 3. Protected Portal | v1.0 | 1/1 | Complete | 2026-01-19 |
 | 4. Bootstrap Foundation | v1.1 | 1/1 | Complete | 2026-01-19 |
-| 5. Styled Auth Pages | v1.1 | 0/2 | Not started | - |
-| 6. Styled Home Page | v1.1 | 0/1 | Not started | - |
+| 5. Styled Auth Pages | v1.1 | 2/2 | Complete | 2026-01-19 |
+| 6. Styled Home Page | v1.1 | 1/1 | Complete | 2026-01-19 |

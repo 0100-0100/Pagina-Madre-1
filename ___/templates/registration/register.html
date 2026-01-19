@@ -1,25 +1,441 @@
 {% extends 'base.html' %}
 
-{% block title %}Register - Pagina Madre{% endblock %}
+{% block title %}Crear Cuenta - Pagina Madre{% endblock %}
 
 {% block content %}
-    <h1>Create Account</h1>
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h4 class="card-title text-center mb-4">Crear Cuenta</h4>
 
-    {% if form.errors %}
-        <div style="color: red;">
-            <p>Please correct the errors below:</p>
-            {{ form.errors }}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="{{ form.cedula.id_for_label }}" class="form-label">{{ form.cedula.label }}</label>
+                                <input type="text"
+                                       name="{{ form.cedula.name }}"
+                                       class="form-control{% if form.cedula.errors %} is-invalid{% endif %}"
+                                       id="{{ form.cedula.id_for_label }}"
+                                       placeholder="Número de cédula"
+                                       {% if form.cedula.value %}value="{{ form.cedula.value }}"{% endif %}
+                                       pattern="[0-9]{6,10}"
+                                       maxlength="10"
+                                       inputmode="numeric"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="La cédula debe tener entre 6 y 10 dígitos numéricos"
+                                       required>
+                                <div class="invalid-feedback">
+                                    {% if form.cedula.errors %}{{ form.cedula.errors.0 }}{% else %}La cédula debe tener entre 6 y 10 dígitos numéricos{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">{{ form.nombre_completo.label }}</label>
+                                <input type="text"
+                                       name="{{ form.nombre_completo.name }}"
+                                       class="form-control{% if form.nombre_completo.errors %} is-invalid{% endif %}"
+                                       id="{{ form.nombre_completo.id_for_label }}"
+                                       placeholder="Nombre completo"
+                                       {% if form.nombre_completo.value %}value="{{ form.nombre_completo.value }}"{% endif %}
+                                       maxlength="60"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Solo letras y espacios, máximo 60 caracteres (se permiten tildes: áéíóúñü)"
+                                       required>
+                                <div class="invalid-feedback">
+                                    {% if form.nombre_completo.errors %}{{ form.nombre_completo.errors.0 }}{% else %}Solo letras y espacios, máximo 60 caracteres{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                                <input type="text"
+                                       name="{{ form.phone.name }}"
+                                       class="form-control{% if form.phone.errors %} is-invalid{% endif %}"
+                                       id="{{ form.phone.id_for_label }}"
+                                       placeholder="Número de teléfono"
+                                       {% if form.phone.value %}value="{{ form.phone.value }}"{% endif %}
+                                       pattern="[0-9]{10}"
+                                       maxlength="10"
+                                       inputmode="numeric"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="El teléfono debe tener 10 dígitos numéricos"
+                                       required>
+                                <div class="invalid-feedback">
+                                    {% if form.phone.errors %}{{ form.phone.errors.0 }}{% else %}El teléfono debe tener 10 dígitos numéricos{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label">{{ form.password1.label }}</label>
+                                <input type="password"
+                                       name="{{ form.password1.name }}"
+                                       class="form-control{% if form.password1.errors %} is-invalid{% endif %}"
+                                       id="{{ form.password1.id_for_label }}"
+                                       placeholder="Contraseña"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="La contraseña debe tener al menos 8 caracteres"
+                                       required>
+                                <div class="invalid-feedback">
+                                    {% if form.password1.errors %}{{ form.password1.errors.0 }}{% else %}Por favor ingrese una contraseña{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label">{{ form.password2.label }}</label>
+                                <input type="password"
+                                       name="{{ form.password2.name }}"
+                                       class="form-control{% if form.password2.errors %} is-invalid{% endif %}"
+                                       id="{{ form.password2.id_for_label }}"
+                                       placeholder="Confirmar contraseña"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Repita la contraseña para confirmar"
+                                       required>
+                                <div class="invalid-feedback">
+                                    {% if form.password2.errors %}{{ form.password2.errors.0 }}{% else %}Por favor confirme su contraseña{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox"
+                                       class="form-check-input{% if form.data_policy_accepted.errors %} is-invalid{% endif %}"
+                                       id="{{ form.data_policy_accepted.id_for_label }}"
+                                       name="{{ form.data_policy_accepted.name }}"
+                                       required>
+                                <label class="form-check-label" for="{{ form.data_policy_accepted.id_for_label }}">
+                                    Acepto la <a href="#" class="text-decoration-none">política de datos</a>
+                                </label>
+                                {% if form.data_policy_accepted.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.data_policy_accepted.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mb-3">Crear Cuenta</button>
+
+                            <div class="text-center">
+                                <p class="mb-0">
+                                    ¿Ya tienes cuenta? <a href="{% url 'login' %}" class="text-decoration-none">Inicia sesión aquí</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-    {% endif %}
+    </div>
+</div>
+{% endblock %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
 
-        <button type="submit">Register</button>
-    </form>
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    <p>
-        Already have an account? <a href="{% url 'login' %}">Login here</a>
-    </p>
+    // Debounce function - validates after user stops typing
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Validate cédula field (6-10 numeric digits)
+    function validateCedula(input) {
+        const value = input.value.trim();
+        const isValid = /^[0-9]{6,10}$/.test(value);
+        const isEmpty = value === '';
+
+        if (isEmpty) {
+            input.classList.remove('is-invalid', 'is-valid');
+        } else if (isValid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    // Validate phone field (10 numeric digits)
+    function validatePhone(input) {
+        const value = input.value.trim();
+        const isValid = /^[0-9]{10}$/.test(value);
+        const isEmpty = value === '';
+
+        if (isEmpty) {
+            input.classList.remove('is-invalid', 'is-valid');
+        } else if (isValid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    // Validate nombre field (letters, spaces, accented chars only, max 60)
+    function validateNombre(input) {
+        const value = input.value.trim();
+        // Allow letters (including Spanish accented: áéíóúñüÁÉÍÓÚÑÜ), spaces, and common name chars like hyphen and apostrophe
+        const isValid = /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s'-]+$/.test(value) && value.length >= 2 && value.length <= 60;
+        const isEmpty = value === '';
+
+        if (isEmpty) {
+            input.classList.remove('is-invalid', 'is-valid');
+        } else if (isValid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    // Validate password (min 8 characters)
+    function validatePassword(input) {
+        const value = input.value;
+        const isEmpty = value === '';
+        const isValid = value.length >= 8;
+
+        if (isEmpty) {
+            input.classList.remove('is-invalid', 'is-valid');
+        } else if (isValid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    // Validate password confirmation
+    function validatePasswordConfirm(input, password1) {
+        const value = input.value;
+        const isEmpty = value === '';
+        const isValid = value === password1.value && value.length > 0;
+
+        if (isEmpty) {
+            input.classList.remove('is-invalid', 'is-valid');
+        } else if (isValid) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    }
+
+    // Filter numeric input helper
+    function filterNumericInput(input, maxLength) {
+        const numericOnly = input.value.replace(/[^0-9]/g, '');
+        input.value = numericOnly.slice(0, maxLength);
+    }
+
+    // Get form fields
+    const cedulaField = document.getElementById('id_cedula');
+    const nombreField = document.getElementById('id_nombre_completo');
+    const phoneField = document.getElementById('id_phone');
+    const password1Field = document.getElementById('id_password1');
+    const password2Field = document.getElementById('id_password2');
+
+    // Setup cédula field (6-10 numeric digits)
+    if (cedulaField) {
+        const debouncedValidation = debounce(() => validateCedula(cedulaField), 1500);
+
+        cedulaField.addEventListener('input', function() {
+            filterNumericInput(this, 10);
+            debouncedValidation();
+        });
+
+        cedulaField.addEventListener('blur', function() {
+            if (this.value.trim() !== '') validateCedula(this);
+        });
+
+        cedulaField.addEventListener('keypress', function(e) {
+            if (e.key < '0' || e.key > '9') e.preventDefault();
+        });
+
+        cedulaField.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const numericOnly = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
+            this.value = (this.value + numericOnly).slice(0, 10);
+            debouncedValidation();
+        });
+    }
+
+    // Setup nombre field (letters, spaces, Spanish accents only, max 60)
+    if (nombreField) {
+        const debouncedValidation = debounce(() => validateNombre(nombreField), 1500);
+
+        // Filter invalid characters on input
+        nombreField.addEventListener('input', function() {
+            // Remove numbers and special characters, keep letters, accents, spaces, hyphens, apostrophes
+            const filtered = this.value.replace(/[^a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s'-]/g, '');
+            // Limit to 60 characters
+            this.value = filtered.slice(0, 60);
+            debouncedValidation();
+        });
+
+        nombreField.addEventListener('blur', function() {
+            if (this.value.trim() !== '') validateNombre(this);
+        });
+
+        // Block invalid characters on keypress
+        nombreField.addEventListener('keypress', function(e) {
+            const char = e.key;
+            // Allow letters (including accented), space, hyphen, apostrophe
+            const validChar = /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s'-]$/.test(char);
+            if (!validChar && char.length === 1) {
+                e.preventDefault();
+            }
+        });
+
+        // Handle paste - filter invalid characters
+        nombreField.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const filtered = pastedText.replace(/[^a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s'-]/g, '').slice(0, 60);
+            const currentValue = this.value;
+            const newValue = (currentValue + filtered).slice(0, 60);
+            this.value = newValue;
+            debouncedValidation();
+        });
+    }
+
+    // Setup phone field (10 numeric digits)
+    if (phoneField) {
+        const debouncedValidation = debounce(() => validatePhone(phoneField), 1500);
+
+        phoneField.addEventListener('input', function() {
+            filterNumericInput(this, 10);
+            debouncedValidation();
+        });
+
+        phoneField.addEventListener('blur', function() {
+            if (this.value.trim() !== '') validatePhone(this);
+        });
+
+        phoneField.addEventListener('keypress', function(e) {
+            if (e.key < '0' || e.key > '9') e.preventDefault();
+        });
+
+        phoneField.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            const numericOnly = pastedText.replace(/[^0-9]/g, '').slice(0, 10);
+            this.value = (this.value + numericOnly).slice(0, 10);
+            debouncedValidation();
+        });
+    }
+
+    // Setup password1 field
+    if (password1Field) {
+        const debouncedValidation = debounce(() => validatePassword(password1Field), 1500);
+        password1Field.addEventListener('input', debouncedValidation);
+        password1Field.addEventListener('blur', function() {
+            if (this.value !== '') validatePassword(this);
+        });
+    }
+
+    // Setup password2 field
+    if (password2Field && password1Field) {
+        const debouncedValidation = debounce(() => validatePasswordConfirm(password2Field, password1Field), 1500);
+        password2Field.addEventListener('input', debouncedValidation);
+        password2Field.addEventListener('blur', function() {
+            if (this.value !== '') validatePasswordConfirm(this, password1Field);
+        });
+    }
+
+    // Validate on form submit
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+
+            if (cedulaField) {
+                validateCedula(cedulaField);
+                if (cedulaField.classList.contains('is-invalid') || cedulaField.value.trim() === '') {
+                    if (cedulaField.value.trim() === '') cedulaField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            if (nombreField) {
+                validateNombre(nombreField);
+                if (nombreField.classList.contains('is-invalid') || nombreField.value.trim() === '') {
+                    if (nombreField.value.trim() === '') nombreField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            if (phoneField) {
+                validatePhone(phoneField);
+                if (phoneField.classList.contains('is-invalid') || phoneField.value.trim() === '') {
+                    if (phoneField.value.trim() === '') phoneField.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            if (password1Field) {
+                validatePassword(password1Field);
+                if (password1Field.classList.contains('is-invalid') || password1Field.value === '') {
+                    if (password1Field.value === '') password1Field.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            if (password2Field && password1Field) {
+                validatePasswordConfirm(password2Field, password1Field);
+                if (password2Field.classList.contains('is-invalid') || password2Field.value === '') {
+                    if (password2Field.value === '') password2Field.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+    }
+})();
+</script>
 {% endblock %}
