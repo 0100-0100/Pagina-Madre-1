@@ -5,35 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Users can securely register and authenticate to access the portal.
-**Current focus:** v1.2 Referrals - COMPLETE
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 10 - Referidos Page
-Plan: 01 of 01 complete
-Status: Phase 10 complete - v1.2 Milestone complete
-Last activity: 2026-01-19 - Completed 10-01-PLAN.md
+Phase: Ready for next milestone
+Plan: Not started
+Status: v1.2 complete — ready to plan v1.3
+Last activity: 2026-01-19 — Completed v1.2 Referrals milestone
 
-Progress: [##########] 100% (4/4 phases complete in v1.2)
-
-## Current Milestone: v1.2 Referrals
-
-**Goal:** Add referral system with tracking, profile management, and referral details page
-
-**Phases:**
-| Phase | Name | Requirements | Status |
-|-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | Complete |
-| 8 | Home Page Referral UI | 4 | Complete |
-| 9 | Profile Page | 4 | Complete |
-| 10 | Referidos Page | 2 | Complete |
-
-**Status:** v1.2 Referrals milestone COMPLETE - ready for ship
+Progress: Milestone complete
 
 ## Milestones Shipped
 
-- **v1.0 MVP** (2026-01-19) - Phases 1-3, 5 plans
+- **v1.2 Referrals** (2026-01-19) - Phases 7-10, 5 plans
 - **v1.1 UI Polish** (2026-01-19) - Phases 4-6, 4 plans
+- **v1.0 MVP** (2026-01-19) - Phases 1-3, 5 plans
 
 See: .planning/MILESTONES.md for full history
 
@@ -47,28 +34,11 @@ See: .planning/MILESTONES.md for full history
 - Bootstrap 5.3.8 via jsDelivr CDN with SRI
 - Real-time validation with 1.5s debounce
 - Input filtering for form fields
-- SeparateDatabaseAndState for SQLite unique constraint migrations
-- Three-step migration for unique fields: add nullable, populate, add constraint
-- Use filter().first() for graceful referral lookup (no exception on missing)
-- ProfileForm excludes cedula (read-only display only)
-- Password change redirects to profile page with success toast
-- Empty state pattern with icon and CTA for empty referral list
-
-### v1.2 Technical Notes
-
-- Use `django.utils.crypto.get_random_string` for referral code generation
-- Self-referential ForeignKey with `on_delete=SET_NULL` preserves history
-- Django's built-in PasswordChangeView for password changes
-- Bootstrap progress bar for goal display
-- Navbar extraction to `includes/navbar.html` for DRY
-- Callable default pattern: `default=generate_referral_code` (no parentheses)
-- Registration captures ?ref=CODE and sets referred_by on new users
-- Use navigator.clipboard API for clipboard copy with fallback alert
-- Bootstrap Icons 1.13.1 via jsDelivr CDN for navigation icons
-- Placeholder routes (return "Coming soon") prevent NoReverseMatch errors
-- Form instance binding: ProfileForm(instance=request.user)
-- PasswordChangeView extension with success message
-- Reverse FK query: `request.user.referrals.all()` for referral list
+- Three-step migration for unique fields
+- Self-referential ForeignKey with SET_NULL
+- filter().first() for graceful referral lookup
+- Django PasswordChangeView extension
+- navigator.clipboard API for copy functionality
 
 ### Pending Todos
 
@@ -82,16 +52,16 @@ See: .planning/MILESTONES.md for full history
 
 Last session: 2026-01-19
 Stopped at: v1.2 milestone complete
-Resume file: .planning/phases/10-referidos-page/10-01-SUMMARY.md
-Next: `/gsd:ship-milestone v1.2` to ship Referrals milestone
+Resume file: .planning/MILESTONES.md
+Next: `/gsd:new-milestone` to start v1.3
 
 ## To Resume Development
 
-v1.2 Referrals milestone complete. All features implemented:
-- Referral model with code generation and tracking
+v1.2 Referrals milestone complete. Full referral system shipped:
+- Referral tracking with unique codes
 - Registration captures referral codes from URL
-- Home page shows referral stats and copy link button
-- Profile page allows editing user info and password
-- Referidos page displays referred users in table with empty state
+- Home page shows stats and copy link button
+- Profile page for editing user info and password
+- Referidos page shows referred users
 
-Ready to ship v1.2 milestone.
+Ready to plan next milestone with `/gsd:new-milestone`.

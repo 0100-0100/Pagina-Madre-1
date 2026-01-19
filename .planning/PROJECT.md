@@ -8,21 +8,9 @@ A Django-based authentication portal for Colombian users with professional Boots
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
-## Current Milestone: v1.2 Referrals
-
-**Goal:** Add referral system with tracking, profile management, and referral details page
-
-**Target features:**
-- Referral link per user (embedded in registration URL)
-- Track referrer-referred relationships
-- Home page: referral count, progress toward goal, shareable link
-- Profile page: edit nombre, teléfono, password, set referral goal
-- Referidos page: table of referred users with details
-- Navigation from home to new pages
-
 ## Current State
 
-**Shipped:** v1.1 UI Polish (2026-01-19)
+**Shipped:** v1.2 Referrals (2026-01-19)
 
 **Tech stack:**
 - Django 4.2 LTS
@@ -32,11 +20,12 @@ Users can securely register and authenticate to access the portal. If authentica
 - Bootstrap 5.3.8 via jsDelivr CDN
 
 **Codebase:**
-- 534 Python LOC + 784 HTML LOC (1,318 total)
-- 4 HTML templates (base.html + 3 pages)
-- Custom User model with cedula validation
+- 1,828 lines of code (Python + HTML)
+- 7 HTML templates (base.html + 6 pages)
+- Custom User model with cedula validation and referral tracking
 - Global login-required middleware
 - Real-time form validation with input filtering
+- Referral system with shareable links and progress tracking
 
 ## Requirements
 
@@ -60,18 +49,19 @@ Users can securely register and authenticate to access the portal. If authentica
 - ✓ Input filtering: numeric-only for cédula/phone, letters+accents for nombre — v1.1
 - ✓ Django messages displayed as Bootstrap alerts — v1.1
 - ✓ Form widget classes applied in forms.py — v1.1
+- ✓ Referral link generation (unique per user, embedded in registration URL) — v1.2
+- ✓ Registration captures referrer from URL parameter — v1.2
+- ✓ Referrer-referred relationship stored in database — v1.2
+- ✓ Home page displays referral count and progress toward goal — v1.2
+- ✓ Home page shows shareable referral link — v1.2
+- ✓ Profile page for editing nombre, teléfono, password — v1.2
+- ✓ Profile page for setting/updating referral goal — v1.2
+- ✓ Referidos page with table (Nombre, Cédula, Teléfono, Fecha de registro) — v1.2
+- ✓ Navigation links from home to Perfil and Referidos pages — v1.2
 
 ### Active
 
-- [ ] Referral link generation (unique per user, embedded in registration URL)
-- [ ] Registration captures referrer from URL parameter
-- [ ] Referrer-referred relationship stored in database
-- [ ] Home page displays referral count and progress toward goal
-- [ ] Home page shows shareable referral link
-- [ ] Profile page for editing nombre, teléfono, password
-- [ ] Profile page for setting/updating referral goal
-- [ ] Referidos page with table (Nombre, Cédula, Teléfono, Fecha de registro)
-- [ ] Navigation links from home to Perfil and Referidos pages
+(None — define next milestone with `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -102,8 +92,9 @@ Users can securely register and authenticate to access the portal. If authentica
 **UI context:**
 - Bootstrap 5 styling complete on all pages
 - Spanish language labels throughout
-- 4 templates: base.html, login.html, register.html, home.html
+- 7 templates: base.html, login.html, register.html, home.html, profile.html, password_change.html, referidos.html
 - Real-time form validation with input filtering
+- Bootstrap Icons for navigation
 
 ## Constraints
 
@@ -131,6 +122,11 @@ Users can securely register and authenticate to access the portal. If authentica
 | Input filtering (block invalid chars) | Better UX than post-validation errors | ✓ Good |
 | Navbar in home.html only | Avoid showing nav on auth pages | ✓ Good |
 | Server-side validation mirrors client-side | Security backup for form validation | ✓ Good |
+| Three-step migration for unique fields | Add nullable, populate, add constraint — SQLite safe | ✓ Good |
+| Self-referential ForeignKey with SET_NULL | Preserves user when referrer deleted | ✓ Good |
+| filter().first() for referral lookup | Graceful handling of invalid codes | ✓ Good |
+| Django PasswordChangeView extension | Secure password handling with session preservation | ✓ Good |
+| navigator.clipboard API | Modern clipboard access with fallback | ✓ Good |
 
 ---
-*Last updated: 2026-01-19 after starting v1.2 milestone*
+*Last updated: 2026-01-19 after completing v1.2 milestone*
