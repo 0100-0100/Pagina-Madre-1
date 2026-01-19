@@ -31,10 +31,10 @@ Add referral tracking system with shareable links, profile management, and refer
 - [x] **HOME-04:** Home page has navigation links to Perfil and Referidos pages
 
 ### Profile Page
-- [ ] **PROF-01:** Profile page allows editing nombre_completo
-- [ ] **PROF-02:** Profile page allows editing teléfono
-- [ ] **PROF-03:** Profile page allows changing password
-- [ ] **PROF-04:** Profile page allows setting/updating referral goal
+- [x] **PROF-01:** Profile page allows editing nombre_completo
+- [x] **PROF-02:** Profile page allows editing teléfono
+- [x] **PROF-03:** Profile page allows changing password
+- [x] **PROF-04:** Profile page allows setting/updating referral goal
 
 ### Referidos Page
 - [ ] **REFR-01:** Referidos page displays table with columns: Nombre, Cédula, Teléfono, Fecha de registro
@@ -91,10 +91,10 @@ Add referral tracking system with shareable links, profile management, and refer
 | HOME-02 | Phase 8 | Complete |
 | HOME-03 | Phase 8 | Complete |
 | HOME-04 | Phase 8 | Complete |
-| PROF-01 | Phase 9 | Pending |
-| PROF-02 | Phase 9 | Pending |
-| PROF-03 | Phase 9 | Pending |
-| PROF-04 | Phase 9 | Pending |
+| PROF-01 | Phase 9 | Complete |
+| PROF-02 | Phase 9 | Complete |
+| PROF-03 | Phase 9 | Complete |
+| PROF-04 | Phase 9 | Complete |
 | REFR-01 | Phase 10 | Pending |
 | REFR-02 | Phase 10 | Pending |
 
