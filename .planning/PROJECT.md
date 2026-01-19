@@ -2,37 +2,29 @@
 
 ## What This Is
 
-A Django-based authentication portal for Colombian users. External users can register with their cédula (6-10 digits validated), phone number, and personal details, then log in to access protected pages. All routes require authentication, with a clean login/register flow as the entry point.
+A Django-based authentication portal for Colombian users with professional Bootstrap 5 styling. External users can register with their cédula (6-10 digits validated), phone number, and personal details, then log in to access protected pages. All routes require authentication, with a clean login/register flow featuring real-time form validation and responsive design.
 
 ## Core Value
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
-## Current Milestone: v1.1 UI Polish
-
-**Goal:** Apply Bootstrap 5 styling to all pages for a professional, responsive look
-
-**Target features:**
-- Bootstrap 5 integration via CDN
-- Styled login page with modern, responsive form
-- Styled register page with clean field layouts
-- Styled home page with navigation bar and user greeting
-
 ## Current State
 
-**Shipped:** v1.0 MVP (2026-01-19)
+**Shipped:** v1.1 UI Polish (2026-01-19)
 
 **Tech stack:**
 - Django 4.2 LTS
 - Python 3.14
 - SQLite database
 - python-decouple for environment variables
+- Bootstrap 5.3.8 via jsDelivr CDN
 
 **Codebase:**
-- 17 Python files, 459 LOC
-- 3 HTML templates
+- 534 Python LOC + 784 HTML LOC (1,318 total)
+- 4 HTML templates (base.html + 3 pages)
 - Custom User model with cedula validation
 - Global login-required middleware
+- Real-time form validation with input filtering
 
 ## Requirements
 
@@ -46,23 +38,28 @@ Users can securely register and authenticate to access the portal. If authentica
 - ✓ Home page displays after successful login with logout button — v1.0
 - ✓ Environment-based SECRET_KEY (.env file) — v1.0
 - ✓ .gitignore for Python/Django project — v1.0
+- ✓ Bootstrap 5 CSS framework integrated via CDN (jsDelivr with SRI) — v1.1
+- ✓ Base template with Bootstrap includes for all pages — v1.1
+- ✓ Login page styled with Bootstrap card, real-time validation — v1.1
+- ✓ Register page styled with Bootstrap card, input filtering — v1.1
+- ✓ Home page styled with navbar and user info display — v1.1
+- ✓ Responsive design (mobile-friendly) across all pages — v1.1
+- ✓ Real-time form validation with debounce (1.5s delay) — v1.1
+- ✓ Input filtering: numeric-only for cédula/phone, letters+accents for nombre — v1.1
+- ✓ Django messages displayed as Bootstrap alerts — v1.1
+- ✓ Form widget classes applied in forms.py — v1.1
 
 ### Active
 
-- [ ] Bootstrap 5 CSS framework integrated via CDN
-- [ ] Base template with Bootstrap includes for all pages
-- [ ] Login page styled with Bootstrap components
-- [ ] Register page styled with Bootstrap form layouts
-- [ ] Home page styled with navigation bar and Bootstrap components
-- [ ] Responsive design (mobile-friendly) across all pages
+(None — ready for next milestone)
 
 ### Out of Scope
 
-- OAuth/social login — adds complexity, not needed for v1
+- OAuth/social login — adds complexity, not needed
 - Email verification — can add later if needed
 - Password reset via email — can add later
 - 2FA/MFA — defer to future version
-- User profile editing — v1 is just auth flow
+- User profile editing — current scope is auth flow
 - Admin dashboard customization — Django admin is sufficient
 - PostgreSQL — SQLite sufficient for small scale, defer to production setup
 - Cloud deployment configuration — handle after local development complete
@@ -108,7 +105,11 @@ Users can securely register and authenticate to access the portal. If authentica
 | Remember me via session.set_expiry() | Flexible: 0 for browser close, 1209600 for 14 days | ✓ Good |
 | SQLite for now | Sufficient for <100 users, minimal setup | ✓ Good |
 | Local-first development | Ship working product before production infrastructure | ✓ Good |
-| Bootstrap 5 via CDN | Quick setup, no build step, widely supported | — Pending |
+| Bootstrap 5.3.8 via jsDelivr CDN | Quick setup, SRI integrity, no build step | ✓ Good |
+| Real-time validation with 1.5s debounce | Responsive UX without excessive server calls | ✓ Good |
+| Input filtering (block invalid chars) | Better UX than post-validation errors | ✓ Good |
+| Navbar in home.html only | Avoid showing nav on auth pages | ✓ Good |
+| Server-side validation mirrors client-side | Security backup for form validation | ✓ Good |
 
 ---
-*Last updated: 2026-01-19 after starting v1.1 milestone*
+*Last updated: 2026-01-19 after v1.1 milestone completion*
