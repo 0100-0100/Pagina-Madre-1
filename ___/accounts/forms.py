@@ -5,6 +5,62 @@ from django.core.exceptions import ValidationError
 from .models import CustomUser
 
 
+class ProfileForm(forms.ModelForm):
+    """Profile editing form with Bootstrap 5 styling"""
+
+    class Meta:
+        model = CustomUser
+        fields = ('nombre_completo', 'phone', 'referral_goal')
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre completo',
+                'maxlength': '60',
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Numero de telefono',
+                'maxlength': '10',
+                'inputmode': 'numeric',
+            }),
+            'referral_goal': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+            }),
+        }
+        labels = {
+            'nombre_completo': 'Nombre Completo',
+            'phone': 'Telefono',
+            'referral_goal': 'Meta de Referidos',
+        }
+
+    def clean_nombre_completo(self):
+        """Validate nombre_completo: letters, spaces, accents only, 2-60 chars"""
+        nombre = self.cleaned_data.get('nombre_completo', '')
+        # Allow letters (including Spanish accented), spaces, hyphens, apostrophes
+        if not re.match(r'^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s\'-]+$', nombre):
+            raise ValidationError('El nombre solo puede contener letras y espacios')
+        if len(nombre) < 2:
+            raise ValidationError('El nombre debe tener al menos 2 caracteres')
+        if len(nombre) > 60:
+            raise ValidationError('El nombre no puede exceder 60 caracteres')
+        return nombre
+
+    def clean_phone(self):
+        """Validate phone: 10 digits only"""
+        phone = self.cleaned_data.get('phone', '')
+        if not phone.isdigit() or len(phone) != 10:
+            raise ValidationError('El telefono debe tener 10 digitos')
+        return phone
+
+    def clean_referral_goal(self):
+        """Validate referral_goal: must be >= 0"""
+        goal = self.cleaned_data.get('referral_goal', 0)
+        if goal < 0:
+            raise ValidationError('La meta debe ser mayor o igual a 0')
+        return goal
+
+
 class LoginForm(AuthenticationForm):
     """Login form with Bootstrap 5 styling"""
 

@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.http import HttpResponse
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, ProfileForm
 
 
 def register(request):
@@ -55,6 +56,26 @@ def home(request):
 def placeholder_view(request):
     """Placeholder view for routes not yet implemented."""
     return HttpResponse("Coming soon", status=200)
+
+
+@login_required
+def profile_view(request):
+    """Profile editing view."""
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil actualizado correctamente')
+            return redirect('perfil')
+        else:
+            messages.error(request, 'Por favor corrige los errores')
+    else:
+        form = ProfileForm(instance=request.user)
+
+    return render(request, 'profile.html', {
+        'form': form,
+        'user': request.user,
+    })
 
 
 class CustomLoginView(LoginView):
