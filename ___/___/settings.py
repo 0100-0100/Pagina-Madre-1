@@ -130,7 +130,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Authentication URLs
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/admin/'  # Temporary, will change to '/home/' in Phase 3
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 # Session configuration
