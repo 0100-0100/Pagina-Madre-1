@@ -46,6 +46,11 @@ Plans:
 
 **Dependencies:** Phase 7 (referral_code, referred_by fields exist)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 08-01-PLAN.md — Update home page with referral stats, copy button, and navigation links
+
 **Requirements:**
 - HOME-01: Home page displays total referral count
 - HOME-02: Home page displays progress toward goal ("X de Y referidos")
@@ -100,7 +105,7 @@ Plans:
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | ✓ Complete |
+| 7 | Referral Model & Registration | 7 | Complete |
 | 8 | Home Page Referral UI | 4 | Pending |
 | 9 | Profile Page | 4 | Pending |
 | 10 | Referidos Page | 2 | Pending |
