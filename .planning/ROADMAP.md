@@ -70,11 +70,11 @@ Plans:
   4. Django messages appear as Bootstrap alerts
   5. Forms work correctly on mobile devices
 **Research flag**: Unlikely (form styling well-documented in research)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Update forms.py with widget classes and style login template
-- [ ] 05-02: Style registration template with form validation
+- [ ] 05-01-PLAN.md — Create LoginForm with Bootstrap classes and style login template with card layout
+- [ ] 05-02-PLAN.md — Update CustomUserCreationForm with Bootstrap classes and style registration template with manual field rendering
 
 #### Phase 6: Styled Home Page
 **Goal**: Welcoming dashboard with navigation bar
