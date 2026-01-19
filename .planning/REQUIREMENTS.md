@@ -37,8 +37,8 @@ Add referral tracking system with shareable links, profile management, and refer
 - [x] **PROF-04:** Profile page allows setting/updating referral goal
 
 ### Referidos Page
-- [ ] **REFR-01:** Referidos page displays table with columns: Nombre, Cédula, Teléfono, Fecha de registro
-- [ ] **REFR-02:** Empty state shows message when user has no referrals
+- [x] **REFR-01:** Referidos page displays table with columns: Nombre, Cédula, Teléfono, Fecha de registro
+- [x] **REFR-02:** Empty state shows message when user has no referrals
 
 ---
 
@@ -95,8 +95,8 @@ Add referral tracking system with shareable links, profile management, and refer
 | PROF-02 | Phase 9 | Complete |
 | PROF-03 | Phase 9 | Complete |
 | PROF-04 | Phase 9 | Complete |
-| REFR-01 | Phase 10 | Pending |
-| REFR-02 | Phase 10 | Pending |
+| REFR-01 | Phase 10 | Complete |
+| REFR-02 | Phase 10 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 17 total

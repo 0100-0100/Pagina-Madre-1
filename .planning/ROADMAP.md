@@ -99,7 +99,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 10-01-PLAN.md — Referidos page with table and empty state
+- [x] 10-01-PLAN.md — Referidos page with table and empty state
 
 **Requirements:**
 - REFR-01: Referidos page displays table with columns: Nombre, Cedula, Telefono, Fecha de registro
@@ -118,7 +118,7 @@ Plans:
 | 7 | Referral Model & Registration | 7 | ✓ Complete |
 | 8 | Home Page Referral UI | 4 | ✓ Complete |
 | 9 | Profile Page | 4 | ✓ Complete |
-| 10 | Referidos Page | 2 | Planned |
+| 10 | Referidos Page | 2 | ✓ Complete |
 
 **Total:** 17 requirements across 4 phases
 
