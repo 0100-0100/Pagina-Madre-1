@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Users can securely register and authenticate to access the portal.
-**Current focus:** v1.2 Referrals - Add referral tracking with shareable links and profile management
+**Current focus:** v1.2 Referrals - COMPLETE
 
 ## Current Position
 
-Phase: 9 - Profile Page
+Phase: 10 - Referidos Page
 Plan: 01 of 01 complete
-Status: Phase 9 complete
-Last activity: 2026-01-19 - Completed 09-01-PLAN.md
+Status: Phase 10 complete - v1.2 Milestone complete
+Last activity: 2026-01-19 - Completed 10-01-PLAN.md
 
-Progress: [########--] 75% (3/4 phases complete in v1.2)
+Progress: [##########] 100% (4/4 phases complete in v1.2)
 
 ## Current Milestone: v1.2 Referrals
 
@@ -26,9 +26,9 @@ Progress: [########--] 75% (3/4 phases complete in v1.2)
 | 7 | Referral Model & Registration | 7 | Complete |
 | 8 | Home Page Referral UI | 4 | Complete |
 | 9 | Profile Page | 4 | Complete |
-| 10 | Referidos Page | 2 | Pending |
+| 10 | Referidos Page | 2 | Complete |
 
-**Next:** Plan Phase 10 with `/gsd:plan-phase 10`
+**Status:** v1.2 Referrals milestone COMPLETE - ready for ship
 
 ## Milestones Shipped
 
@@ -52,6 +52,7 @@ See: .planning/MILESTONES.md for full history
 - Use filter().first() for graceful referral lookup (no exception on missing)
 - ProfileForm excludes cedula (read-only display only)
 - Password change redirects to profile page with success toast
+- Empty state pattern with icon and CTA for empty referral list
 
 ### v1.2 Technical Notes
 
@@ -67,6 +68,7 @@ See: .planning/MILESTONES.md for full history
 - Placeholder routes (return "Coming soon") prevent NoReverseMatch errors
 - Form instance binding: ProfileForm(instance=request.user)
 - PasswordChangeView extension with success message
+- Reverse FK query: `request.user.referrals.all()` for referral list
 
 ### Pending Todos
 
@@ -79,10 +81,17 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 9 complete
-Resume file: .planning/phases/09-profile-page/09-01-SUMMARY.md
-Next: `/gsd:plan-phase 10` to plan Referidos Page
+Stopped at: v1.2 milestone complete
+Resume file: .planning/phases/10-referidos-page/10-01-SUMMARY.md
+Next: `/gsd:ship-milestone v1.2` to ship Referrals milestone
 
 ## To Resume Development
 
-Phase 9 complete. Profile page at /perfil/ allows editing nombre, phone, and referral_goal. Password change at /cambiar-password/ with Django's secure handling. Ready to proceed to Phase 10 (Referidos Page).
+v1.2 Referrals milestone complete. All features implemented:
+- Referral model with code generation and tracking
+- Registration captures referral codes from URL
+- Home page shows referral stats and copy link button
+- Profile page allows editing user info and password
+- Referidos page displays referred users in table with empty state
+
+Ready to ship v1.2 milestone.
