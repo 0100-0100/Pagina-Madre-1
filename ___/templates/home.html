@@ -12,16 +12,20 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item">
-                    <span class="nav-link text-light">
-                        <i class="bi bi-person-circle"></i>
-                        {{ user.nombre_completo|default:user.username }}
-                    </span>
+                    <a class="nav-link" href="{% url 'perfil' %}">
+                        <i class="bi bi-person"></i> Perfil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'referidos' %}">
+                        <i class="bi bi-people"></i> Referidos
+                    </a>
                 </li>
                 <li class="nav-item">
                     <form method="post" action="{% url 'logout' %}" class="d-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-outline-light btn-sm ms-2">
-                            Cerrar Sesión
+                            <i class="bi bi-box-arrow-right"></i> Cerrar Sesion
                         </button>
                     </form>
                 </li>
