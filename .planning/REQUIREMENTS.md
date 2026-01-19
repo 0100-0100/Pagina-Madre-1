@@ -25,10 +25,10 @@ Add referral tracking system with shareable links, profile management, and refer
 - [x] **REG-03:** Invalid or missing referral code proceeds without error
 
 ### Home Page
-- [ ] **HOME-01:** Home page displays total referral count
-- [ ] **HOME-02:** Home page displays progress toward goal ("X de Y referidos")
-- [ ] **HOME-03:** Home page shows shareable referral link
-- [ ] **HOME-04:** Home page has navigation links to Perfil and Referidos pages
+- [x] **HOME-01:** Home page displays total referral count
+- [x] **HOME-02:** Home page displays progress toward goal ("X de Y referidos")
+- [x] **HOME-03:** Home page shows shareable referral link
+- [x] **HOME-04:** Home page has navigation links to Perfil and Referidos pages
 
 ### Profile Page
 - [ ] **PROF-01:** Profile page allows editing nombre_completo
@@ -87,10 +87,10 @@ Add referral tracking system with shareable links, profile management, and refer
 | REG-01 | Phase 7 | Complete |
 | REG-02 | Phase 7 | Complete |
 | REG-03 | Phase 7 | Complete |
-| HOME-01 | Phase 8 | Pending |
-| HOME-02 | Phase 8 | Pending |
-| HOME-03 | Phase 8 | Pending |
-| HOME-04 | Phase 8 | Pending |
+| HOME-01 | Phase 8 | Complete |
+| HOME-02 | Phase 8 | Complete |
+| HOME-03 | Phase 8 | Complete |
+| HOME-04 | Phase 8 | Complete |
 | PROF-01 | Phase 9 | Pending |
 | PROF-02 | Phase 9 | Pending |
 | PROF-03 | Phase 9 | Pending |

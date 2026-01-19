@@ -49,7 +49,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 08-01-PLAN.md — Update home page with referral stats, copy button, and navigation links
+- [x] 08-01-PLAN.md — Update home page with referral stats, copy button, and navigation links
 
 **Requirements:**
 - HOME-01: Home page displays total referral count
@@ -105,8 +105,8 @@ Plans:
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | Complete |
-| 8 | Home Page Referral UI | 4 | Pending |
+| 7 | Referral Model & Registration | 7 | ✓ Complete |
+| 8 | Home Page Referral UI | 4 | ✓ Complete |
 | 9 | Profile Page | 4 | Pending |
 | 10 | Referidos Page | 2 | Pending |
 
