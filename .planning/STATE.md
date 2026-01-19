@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 7 - Referral Model & Registration
-Plan: 01 complete
-Status: Plan 07-01 complete, continue with phase planning
-Last activity: 2026-01-19 - Completed 07-01-PLAN.md
+Plan: 02 complete
+Status: Plan 07-02 complete, continue with phase planning
+Last activity: 2026-01-19 - Completed 07-02-PLAN.md
 
-Progress: [##--------] 25% (1/4 plans in phase 7)
+Progress: [####------] 50% (2/4 plans in phase 7)
 
 ## Current Milestone: v1.2 Referrals
 
@@ -23,7 +23,7 @@ Progress: [##--------] 25% (1/4 plans in phase 7)
 **Phases:**
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | In Progress (1 plan done) |
+| 7 | Referral Model & Registration | 7 | In Progress (2 plans done) |
 | 8 | Home Page Referral UI | 4 | Pending |
 | 9 | Profile Page | 4 | Pending |
 | 10 | Referidos Page | 2 | Pending |
@@ -49,6 +49,7 @@ See: .planning/MILESTONES.md for full history
 - Input filtering for form fields
 - SeparateDatabaseAndState for SQLite unique constraint migrations
 - Three-step migration for unique fields: add nullable, populate, add constraint
+- Use filter().first() for graceful referral lookup (no exception on missing)
 
 ### v1.2 Technical Notes
 
@@ -58,6 +59,7 @@ See: .planning/MILESTONES.md for full history
 - Bootstrap progress bar for goal display
 - Navbar extraction to `includes/navbar.html` for DRY
 - Callable default pattern: `default=generate_referral_code` (no parentheses)
+- Registration captures ?ref=CODE and sets referred_by on new users
 
 ### Pending Todos
 
@@ -70,10 +72,10 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Completed 07-01-PLAN.md
-Resume file: .planning/phases/07-referral-model-registration/07-01-SUMMARY.md
-Next: Continue with next plan in Phase 7 or plan remaining requirements
+Stopped at: Completed 07-02-PLAN.md
+Resume file: .planning/phases/07-referral-model-registration/07-02-SUMMARY.md
+Next: Continue with next plan in Phase 7 or execute remaining plans
 
 ## To Resume Development
 
-Phase 7 Plan 01 complete. CustomUser model now has referral fields. Continue with next plan for registration form integration with referred_by.
+Phase 7 Plan 02 complete. Registration view now captures referral codes from URL. Continue with next plan for remaining Phase 7 requirements.
