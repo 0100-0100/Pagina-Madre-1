@@ -9,17 +9,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can register with username, password, Nombre Completo, Cédula, Phone, and data policy acceptance
-- [ ] **AUTH-02**: Colombian cédula validated (6-10 digits format)
-- [ ] **AUTH-03**: User can log in with username and password
-- [ ] **AUTH-04**: "Remember me" option extends session duration
-- [ ] **AUTH-05**: User can log out from home page
-- [ ] **AUTH-06**: All unauthenticated requests redirect to login page
+- [x] **AUTH-01**: User can register with cedula, password, Nombre Completo, Phone, and data policy acceptance
+- [x] **AUTH-02**: Colombian cédula validated (6-10 digits format)
+- [x] **AUTH-03**: User can log in with cedula and password
+- [x] **AUTH-04**: "Remember me" option extends session duration
+- [x] **AUTH-05**: User can log out
+- [x] **AUTH-06**: All unauthenticated requests redirect to login page
 
 ### Pages
 
-- [ ] **PAGE-01**: Login page with username, password, remember me fields
-- [ ] **PAGE-02**: Registration page with all required fields
+- [x] **PAGE-01**: Login page with cedula, password, remember me fields
+- [x] **PAGE-02**: Registration page with all required fields
 - [ ] **PAGE-03**: Home page with logout button (post-login landing)
 
 ### Infrastructure
@@ -65,14 +65,14 @@ Which phases cover which requirements. Updated by create-roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| AUTH-06 | Phase 2 | Pending |
-| PAGE-01 | Phase 2 | Pending |
-| PAGE-02 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Complete |
+| AUTH-05 | Phase 2 | Complete |
+| AUTH-06 | Phase 2 | Complete |
+| PAGE-01 | Phase 2 | Complete |
+| PAGE-02 | Phase 2 | Complete |
 | PAGE-03 | Phase 3 | Pending |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
@@ -85,4 +85,4 @@ Which phases cover which requirements. Updated by create-roadmap.
 
 ---
 *Requirements defined: 2026-01-18*
-*Last updated: 2026-01-18 after Phase 1 completion*
+*Last updated: 2026-01-19 after Phase 2 completion*
