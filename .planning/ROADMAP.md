@@ -43,7 +43,12 @@ Plans:
 5. Registration page displays all required fields with proper validation
 6. Login page displays username, password, and "Remember me" fields
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Custom User model with cedula validation and admin integration
+- [ ] 02-02-PLAN.md — Registration and login views with remember me functionality
+- [ ] 02-03-PLAN.md — Global login-required middleware
 
 ---
 
