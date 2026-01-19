@@ -2,29 +2,44 @@
 
 ## What This Is
 
-A Django-based user portal with authentication. External users can register with their Colombian cédula, phone number, and personal details, then log in to access protected pages. This is the foundation for a larger application — all routes require authentication, with a clean login/register flow as the entry point.
+A Django-based authentication portal for Colombian users. External users can register with their cédula (6-10 digits validated), phone number, and personal details, then log in to access protected pages. All routes require authentication, with a clean login/register flow as the entry point.
 
 ## Core Value
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
+## Current State
+
+**Shipped:** v1.0 MVP (2026-01-19)
+
+**Tech stack:**
+- Django 4.2 LTS
+- Python 3.14
+- SQLite database
+- python-decouple for environment variables
+
+**Codebase:**
+- 17 Python files, 459 LOC
+- 3 HTML templates
+- Custom User model with cedula validation
+- Global login-required middleware
+
 ## Requirements
 
 ### Validated
 
-- ✓ Django project scaffold — existing
-- ✓ WSGI/ASGI entry points configured — existing
+- ✓ All unauthenticated requests redirect to login page — v1.0
+- ✓ User registration with: Nombre Completo, Cédula (Colombian format validated), Phone, data policy acceptance — v1.0
+- ✓ User can log in with cédula and password — v1.0
+- ✓ "Remember me" option for extended sessions — v1.0
+- ✓ User can log in immediately after registration — v1.0
+- ✓ Home page displays after successful login with logout button — v1.0
+- ✓ Environment-based SECRET_KEY (.env file) — v1.0
+- ✓ .gitignore for Python/Django project — v1.0
 
 ### Active
 
-- [ ] All unauthenticated requests redirect to login page
-- [ ] User registration with: Nombre Completo, Cédula (Colombian format validated), Phone, data policy acceptance
-- [ ] User can log in with username and password
-- [ ] "Remember me" option for extended sessions
-- [ ] User can log in immediately after registration
-- [ ] Home page displays after successful login with logout button
-- [ ] Environment-based SECRET_KEY (.env file)
-- [ ] .gitignore for Python/Django project
+(None yet — run `/gsd:define-requirements` for next milestone)
 
 ### Out of Scope
 
@@ -39,14 +54,6 @@ Users can securely register and authenticate to access the portal. If authentica
 
 ## Context
 
-**Technical environment:**
-- Django 5.x (note: requirements.txt needs correction)
-- Python 3.14
-- Existing project scaffold with name "___"
-- Virtual environment in `.venv/`
-- No apps created yet, just Django project structure
-- SQLite database for development and initial deployment
-
 **User context:**
 - External/public users registering
 - Small scale (<100 users)
@@ -55,7 +62,8 @@ Users can securely register and authenticate to access the portal. If authentica
 **Security context:**
 - Storing PII (cédula, phone, name) — requires proper data handling
 - Data policy acceptance required at registration
-- Standard password requirements (Django defaults)
+- Session security: HTTPONLY, SAMESITE cookies
+- CSRF protection on all forms
 
 ## Constraints
 
@@ -70,11 +78,13 @@ Users can securely register and authenticate to access the portal. If authentica
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Django over alternatives | Built-in auth, secure defaults, good for expansion | — Pending |
-| Extended User model | Custom fields (cedula, phone) needed | — Pending |
-| SQLite for now | Sufficient for <100 users, minimal setup | — Pending |
-| Login-required middleware | Cleaner than decorating every view | — Pending |
-| Local-first development | Ship working product before production infrastructure | — Pending |
+| Django 4.2 LTS over newer versions | Stability and long-term support | ✓ Good |
+| AbstractUser over AbstractBaseUser | Preserves Django's complete auth stack while adding custom fields | ✓ Good |
+| Cédula as username | Simplifies authentication — single identifier for login | ✓ Good |
+| Custom middleware over third-party | Zero dependencies, ~30 lines, full control | ✓ Good |
+| Remember me via session.set_expiry() | Flexible: 0 for browser close, 1209600 for 14 days | ✓ Good |
+| SQLite for now | Sufficient for <100 users, minimal setup | ✓ Good |
+| Local-first development | Ship working product before production infrastructure | ✓ Good |
 
 ---
-*Last updated: 2026-01-18 after requirements simplification*
+*Last updated: 2026-01-19 after v1.0 milestone*
