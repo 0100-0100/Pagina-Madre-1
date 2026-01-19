@@ -1,6 +1,6 @@
 import re
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from django.core.exceptions import ValidationError
 from .models import CustomUser
 
@@ -155,3 +155,30 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    """Password change form with Bootstrap 5 styling"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Style old_password field
+        self.fields['old_password'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Contrasena actual'
+        })
+        self.fields['old_password'].label = 'Contrasena Actual'
+
+        # Style new_password1 field
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Nueva contrasena'
+        })
+        self.fields['new_password1'].label = 'Nueva Contrasena'
+
+        # Style new_password2 field
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Confirmar nueva contrasena'
+        })
+        self.fields['new_password2'].label = 'Confirmar Nueva Contrasena'

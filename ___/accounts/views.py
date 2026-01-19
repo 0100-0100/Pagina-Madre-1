@@ -2,10 +2,10 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
-from django.urls import reverse
+from django.contrib.auth.views import LoginView, PasswordChangeView
+from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse
-from .forms import CustomUserCreationForm, ProfileForm
+from .forms import CustomUserCreationForm, ProfileForm, CustomPasswordChangeForm
 
 
 def register(request):
@@ -93,3 +93,15 @@ class CustomLoginView(LoginView):
             # Set session to 14 days (1209600 seconds)
             self.request.session.set_expiry(1209600)
         return response
+
+
+class CustomPasswordChangeView(PasswordChangeView):
+    """Password change view with custom template and success handling"""
+    template_name = 'registration/password_change.html'
+    form_class = CustomPasswordChangeForm
+    success_url = reverse_lazy('perfil')
+
+    def form_valid(self, form):
+        """Add success message after password change"""
+        messages.success(self.request, 'Contrasena actualizada correctamente')
+        return super().form_valid(form)
