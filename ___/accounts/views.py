@@ -4,7 +4,6 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.urls import reverse, reverse_lazy
-from django.http import HttpResponse
 from .forms import CustomUserCreationForm, ProfileForm, CustomPasswordChangeForm
 
 
@@ -51,11 +50,6 @@ def home(request):
         'progress_percent': progress_percent,
         'referral_url': referral_url,
     })
-
-
-def placeholder_view(request):
-    """Placeholder view for routes not yet implemented."""
-    return HttpResponse("Coming soon", status=200)
 
 
 @login_required
