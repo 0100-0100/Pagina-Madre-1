@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 7 - Referral Model & Registration ✓
-Plan: All plans complete
-Status: Phase 7 complete, goal verified
-Last activity: 2026-01-19 - Phase 7 execution complete
+Phase: 8 - Home Page Referral UI ✓
+Plan: 01 of 01 complete
+Status: Phase 8 complete
+Last activity: 2026-01-19 - Completed 08-01-PLAN.md
 
-Progress: [##--------] 25% (1/4 phases complete in v1.2)
+Progress: [#####-----] 50% (2/4 phases complete in v1.2)
 
 ## Current Milestone: v1.2 Referrals
 
@@ -24,11 +24,11 @@ Progress: [##--------] 25% (1/4 phases complete in v1.2)
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 7 | Referral Model & Registration | 7 | ✓ Complete |
-| 8 | Home Page Referral UI | 4 | Pending |
+| 8 | Home Page Referral UI | 4 | ✓ Complete |
 | 9 | Profile Page | 4 | Pending |
 | 10 | Referidos Page | 2 | Pending |
 
-**Next:** Plan Phase 8 with `/gsd:plan-phase 8`
+**Next:** Plan Phase 9 with `/gsd:plan-phase 9`
 
 ## Milestones Shipped
 
@@ -60,6 +60,9 @@ See: .planning/MILESTONES.md for full history
 - Navbar extraction to `includes/navbar.html` for DRY
 - Callable default pattern: `default=generate_referral_code` (no parentheses)
 - Registration captures ?ref=CODE and sets referred_by on new users
+- Use navigator.clipboard API for clipboard copy with fallback alert
+- Bootstrap Icons 1.13.1 via jsDelivr CDN for navigation icons
+- Placeholder routes (return "Coming soon") prevent NoReverseMatch errors
 
 ### Pending Todos
 
@@ -72,10 +75,10 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 7 complete and verified
-Resume file: .planning/phases/07-referral-model-registration/07-VERIFICATION.md
-Next: `/gsd:plan-phase 8` to plan Home Page Referral UI
+Stopped at: Phase 8 complete
+Resume file: .planning/phases/08-home-page-referral-ui/08-01-SUMMARY.md
+Next: `/gsd:plan-phase 9` to plan Profile Page
 
 ## To Resume Development
 
-Phase 7 complete. Users can now register via referral links (?ref=CODE) and the system tracks referrer relationships. All 7 requirements verified. Ready to proceed to Phase 8.
+Phase 8 complete. Home page now displays referral count with progress bar and copy-to-clipboard button for referral link. Navbar has Perfil and Referidos links (placeholder routes). Ready to proceed to Phase 9.
