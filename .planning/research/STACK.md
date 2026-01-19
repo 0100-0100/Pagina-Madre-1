@@ -1,336 +1,397 @@
-# Technology Stack: Bootstrap 5 Integration with Django
+# Stack Research: v1.2 Referrals
 
-**Project:** Django 4.2 Authentication Portal - v1.1 Bootstrap Styling
+**Project:** Django 4.2 Authentication Portal - Referral Tracking System
 **Researched:** 2026-01-19
 **Confidence:** HIGH
 
-## Executive Summary
+## Recommended Approach
 
-For adding Bootstrap 5 to an existing Django 4.2 authentication portal with 3 templates, **use CDN integration** for simplicity and speed. Bootstrap 5.3.8 is the current stable release, fully compatible with Django 4.2, and requires no backend packages for basic styling needs.
+**Use a self-referential ForeignKey on the existing CustomUser model** with a separate referral code field. No external packages needed.
 
-## Recommended Approach: CDN Integration
-
-### Why CDN (for this project)
+### Why This Approach
 
 | Criterion | Assessment | Rationale |
 |-----------|------------|-----------|
-| **Simplicity** | Excellent | Single `<link>` and `<script>` tag in base template |
-| **Speed** | Fast | No npm setup, no build process, works immediately |
-| **Maintenance** | Low | No dependencies to manage, CDN handles caching |
-| **Performance** | Good | jsDelivr CDN has global edge locations, likely faster than self-hosting |
-| **Offline dev** | Not needed | Auth portal assumes internet connectivity |
-| **Customization** | Limited | Cannot customize Bootstrap source, but sufficient for standard styling |
+| **Simplicity** | Excellent | 2-3 new fields on existing model, no new dependencies |
+| **Data Integrity** | Strong | Django ForeignKey enforces referential integrity |
+| **Query Performance** | Good | Single join to get referrer/referrals, `select_related` for optimization |
+| **Migration** | Clean | Adds nullable fields, no data migration needed |
+| **Maintenance** | Low | No external packages to update, standard Django patterns |
 
-**Verdict:** For 3 templates with standard Bootstrap components, CDN is the optimal choice.
+**Verdict:** For simple referrer-referred tracking without rewards/MLM complexity, self-referential FK is the optimal choice.
 
-## Recommended Stack
+## Implementation Details
 
-### Core: Bootstrap 5.3.8 via CDN
+### Model Changes to CustomUser
 
-| Technology | Version | Purpose | Integration Method |
-|------------|---------|---------|-------------------|
-| Bootstrap CSS | 5.3.8 | Responsive styling, component library | CDN link in `<head>` |
-| Bootstrap JS | 5.3.8 | Interactive components (modals, dropdowns) | CDN script before `</body>` |
-| Popper.js | Bundled | Positioning for tooltips, popovers | Included in bootstrap.bundle.js |
-
-**CDN Links (use these exactly):**
-
-```html
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous">
-
-<!-- Bootstrap JS Bundle (includes Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz4YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-        crossorigin="anonymous"></script>
-```
-
-**Important:** Always include the `integrity` attribute for security verification (prevents CDN tampering).
-
-### Optional: Django Packages (NOT RECOMMENDED for this project)
-
-| Package | Version | Purpose | Why Not |
-|---------|---------|---------|---------|
-| django-bootstrap5 | 26.1 | Form rendering, template tags | Overkill for 3 simple templates, adds dependency |
-| django-crispy-forms + crispy-bootstrap5 | Latest | Advanced form layouts | Unnecessary complexity for basic auth forms |
-
-**Rationale for skipping packages:**
-- Auth portal has simple forms (username/password, registration)
-- No complex form layouts requiring programmatic control
-- Hand-crafting 3 forms with Bootstrap classes is faster than learning package APIs
-- Packages add maintenance burden (updates, compatibility)
-- CDN approach keeps codebase minimal
-
-## Integration Pattern
-
-### 1. Create Base Template
-
-Create `templates/base.html` with Bootstrap CDN:
-
-```django
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Auth Portal{% endblock %}</title>
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-          crossorigin="anonymous">
-
-    <!-- Optional: Custom CSS overrides -->
-    {% block extra_css %}{% endblock %}
-</head>
-<body>
-    {% block content %}{% endblock %}
-
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz4YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
-
-    {% block extra_js %}{% endblock %}
-</body>
-</html>
-```
-
-### 2. Extend in Existing Templates
-
-Modify `login.html`, `register.html`, `home.html`:
-
-```django
-{% extends 'base.html' %}
-
-{% block title %}Login{% endblock %}
-
-{% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <!-- Bootstrap-styled content here -->
-        </div>
-    </div>
-</div>
-{% endblock %}
-```
-
-### 3. No settings.py Changes Needed
-
-No `INSTALLED_APPS` modifications. No package installations. Just template changes.
-
-## Alternatives Considered
-
-### Alternative 1: npm + Static Files
-
-**What:** Install Bootstrap via npm, copy to Django static folder
-
-```bash
-npm install bootstrap@5.3.8
-cp node_modules/bootstrap/dist/css/bootstrap.min.css static/css/
-cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js static/js/
-```
-
-**Why Not:**
-- Requires Node.js/npm setup (unnecessary complexity)
-- Adds build step to development workflow
-- Must manually copy files or configure build tool
-- Static files need Django's `collectstatic` in production
-- CDN is already optimized and cached globally
-
-**When to use:** Projects with extensive customization needs (custom Bootstrap themes, SASS variables).
-
-### Alternative 2: django-bootstrap5 Package
-
-**What:** Python package providing Django template tags for Bootstrap
-
-```bash
-pip install django-bootstrap5==26.1
-```
-
-**Features:**
-- Template tags: `{% bootstrap_form %}`, `{% bootstrap_button %}`
-- Automatic form rendering with Bootstrap styles
-- Support for Django messages, pagination
-
-**Why Not:**
-- Learning curve for package-specific template tags
-- Another dependency to maintain
-- Auth forms are simple enough to style manually
-- Doesn't save significant time for 3 templates
-
-**When to use:** Projects with 10+ complex forms, need for programmatic form layout control, preference for Django-native form rendering.
-
-### Alternative 3: django-crispy-forms + crispy-bootstrap5
-
-**What:** Advanced form rendering with Python layout objects
-
-```bash
-pip install django-crispy-forms crispy-bootstrap5
-```
-
-**Features:**
-- Powerful Layout API for complex form arrangements
-- FloatingField for Bootstrap 5 floating labels
-- FormHelper for configuring form rendering
-
-**Why Not:**
-- Significant overkill for basic login/register forms
-- Steeper learning curve than django-bootstrap5
-- Two packages to maintain vs. zero with CDN
-
-**When to use:** Form-heavy applications (multi-step wizards, dynamic fieldsets, complex admin interfaces).
-
-## Version Compatibility Matrix
-
-| Component | Version | Django 4.2 Compatible | Python Requirement | Notes |
-|-----------|---------|----------------------|-------------------|-------|
-| Bootstrap 5 | 5.3.8 | Yes | N/A (CDN) | Current stable, released 2025 |
-| django-bootstrap5 | 26.1 | Yes | >=3.10 | If package route chosen |
-| crispy-bootstrap5 | 2025.6 | Yes | >=3.8 | If crispy-forms route chosen |
-
-**Important:** Bootstrap 5 dropped jQuery dependency. No jQuery needed for Bootstrap 5 functionality.
-
-## Performance Considerations
-
-### CDN Benefits
-
-1. **Global Edge Caching:** jsDelivr serves files from nearest edge location
-2. **Browser Caching:** Users likely already have Bootstrap 5.3.8 cached from other sites
-3. **Parallel Downloads:** CSS and JS download in parallel with your HTML
-4. **No Server Load:** Your Django server doesn't serve static files
-
-### CDN Tradeoffs
-
-1. **External Dependency:** Site styling breaks if jsDelivr is down (rare, 99.9%+ uptime)
-2. **Privacy:** Third-party request (GDPR consideration, minimal for jsDelivr)
-3. **No Offline Dev:** Requires internet during development
-
-**Mitigation:** For production, consider adding fallback to local copy if CDN fails.
-
-## Security
-
-### Subresource Integrity (SRI)
-
-**CRITICAL:** Always include `integrity` attribute in CDN links.
-
-```html
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-      crossorigin="anonymous">
-```
-
-**Why:** Prevents CDN tampering. Browser verifies file hash before executing.
-
-**How to get SRI hash:** Official Bootstrap docs always provide current SRI hashes.
-
-## Future Upgrade Path
-
-### When to Switch from CDN to npm
-
-Consider switching to npm/static files when:
-
-1. **Customization Needed:** Want to modify Bootstrap SASS variables (brand colors, spacing scale)
-2. **Bundle Optimization:** Need to tree-shake unused Bootstrap components
-3. **Offline Requirement:** Product must work without internet
-4. **Build Pipeline Exists:** Already using Webpack/Vite for frontend assets
-
-### When to Add django-bootstrap5
-
-Consider adding django-bootstrap5 when:
-
-1. **Form Count Grows:** More than 10 forms in the application
-2. **Form Complexity:** Multi-step wizards, dynamic fieldsets
-3. **Consistency:** Team prefers template tags over manual HTML
-
-**Migration effort:** Low. Can introduce package incrementally, leaving existing hand-coded templates unchanged.
-
-## Installation (None Required)
-
-For CDN approach:
-
-```bash
-# No installation needed
-# Just add CDN links to templates
-```
-
-If later switching to package approach:
-
-```bash
-# Option A: Basic Bootstrap package
-pip install django-bootstrap5==26.1
-
-# Option B: Advanced form rendering
-pip install django-crispy-forms crispy-bootstrap5
-```
-
-## Configuration (None Required)
-
-For CDN approach, no `settings.py` changes needed.
-
-If later adding django-bootstrap5:
+Add these fields to the existing `CustomUser` model in `accounts/models.py`:
 
 ```python
-INSTALLED_APPS = [
-    # ...
-    'django_bootstrap5',
-]
+from django.utils.crypto import get_random_string
 
-# Optional configuration
-BOOTSTRAP5 = {
-    'css_url': {
-        'url': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
-        'integrity': 'sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB',
-        'crossorigin': 'anonymous',
-    },
-    'javascript_url': {
-        'url': 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js',
-        'integrity': 'sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz4YYwJrWVcXK/BmnVDxM+D2scQbITxI',
-        'crossorigin': 'anonymous',
-    },
-}
+class CustomUser(AbstractUser):
+    # ... existing fields ...
+
+    # Referral tracking
+    referral_code = models.CharField(
+        max_length=8,
+        unique=True,
+        blank=True,
+        help_text='Unique referral code for this user'
+    )
+    referred_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referrals',
+        help_text='User who referred this user'
+    )
+    referral_goal = models.PositiveIntegerField(
+        default=10,
+        help_text='Target number of referrals'
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            self.referral_code = self._generate_unique_referral_code()
+        super().save(*args, **kwargs)
+
+    def _generate_unique_referral_code(self):
+        """Generate a unique 8-character alphanumeric code"""
+        while True:
+            code = get_random_string(length=8, allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+            if not CustomUser.objects.filter(referral_code=code).exists():
+                return code
+
+    @property
+    def referral_count(self):
+        return self.referrals.count()
+
+    @property
+    def referral_progress(self):
+        if self.referral_goal == 0:
+            return 100
+        return min(100, int((self.referral_count / self.referral_goal) * 100))
 ```
+
+### Key Design Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **ForeignKey vs separate model** | ForeignKey on User | Simple 1:1 referrer relationship, no metadata needed |
+| **on_delete** | SET_NULL | Preserve referral history if referrer account deleted |
+| **related_name** | `referrals` | `user.referrals.all()` returns all users they referred |
+| **Code length** | 8 characters | 2.8 trillion combinations, human-memorable, URL-safe |
+| **Code charset** | Uppercase + digits (no 0,O,1,I,L) | Avoids ambiguous characters for readability |
+| **Code generation timing** | On save() | Auto-generates for new users, backfill existing |
+
+### Referral Code Strategy
+
+**Use `django.utils.crypto.get_random_string`** - Django's built-in secure random string generator.
+
+```python
+from django.utils.crypto import get_random_string
+
+# 8-char alphanumeric (no ambiguous chars)
+code = get_random_string(length=8, allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+# Example output: "K7X3M9NP"
+```
+
+**Why not UUID?**
+- UUIDs are 36 characters (`48a6ec8b-4929-426e-a1c3-9381b2e603d3`)
+- Hard to type, share verbally, or remember
+- 8-char code is sufficient for <1M users
+
+**Why not sequential IDs?**
+- Exposes user count (security concern)
+- Allows enumeration attacks
+- Looks unprofessional in URLs
+
+### URL Parameter Handling
+
+**Capture referral code via query parameter** in registration URL.
+
+**Referral link format:**
+```
+https://yoursite.com/register/?ref=K7X3M9NP
+```
+
+**Registration view modification:**
+
+```python
+def register(request):
+    referrer = None
+    ref_code = request.GET.get('ref') or request.POST.get('ref_code')
+
+    if ref_code:
+        try:
+            referrer = CustomUser.objects.get(referral_code=ref_code.upper())
+        except CustomUser.DoesNotExist:
+            pass  # Invalid code, continue without referrer
+
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.referred_by = referrer
+            user.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'registration/register.html', {
+        'form': form,
+        'referrer': referrer,
+        'ref_code': ref_code,
+    })
+```
+
+**Template (pass ref_code through form):**
+
+```html
+<form method="post">
+    {% csrf_token %}
+    {% if ref_code %}
+    <input type="hidden" name="ref_code" value="{{ ref_code }}">
+    {% endif %}
+    {{ form.as_p }}
+    <button type="submit">Registrarse</button>
+</form>
+```
+
+### Querying Referrals
+
+```python
+# Get all users referred by current user
+user.referrals.all()
+
+# Get referral count
+user.referrals.count()
+
+# Get referrer of current user
+user.referred_by
+
+# Optimized query with referrer info (avoids N+1)
+User.objects.select_related('referred_by').filter(...)
+
+# Optimized query with referrals (for listing)
+user = User.objects.prefetch_related('referrals').get(pk=user_id)
+```
+
+## Packages
+
+### Recommendation: No External Packages
+
+For this project's requirements (simple tracking, no rewards/MLM), external packages add complexity without benefit.
+
+### Packages Evaluated and Rejected
+
+| Package | Last Updated | Status | Why Not Use |
+|---------|--------------|--------|-------------|
+| **django-reflinks** | Nov 2023 | ARCHIVED | Repository archived, no longer maintained |
+| **django-simple-referrals** | May 2018 | ABANDONED | Last release 6+ years ago, Django 2.0 only |
+| **pinax-referrals** | June 2023 | Active but heavy | Complex (campaigns, responses, rewards), overkill for simple tracking |
+
+**Key insight:** The referral package ecosystem is fragmented with many abandoned projects. Simple referral tracking is straightforward enough to implement with standard Django patterns.
+
+### If Multi-Level Marketing Features Needed Later
+
+**Only then consider:** `pinax-referrals` (4.3.0) - supports campaign-based referrals, response tracking, and multi-level structures.
+
+```bash
+# NOT RECOMMENDED for v1.2, but future reference:
+pip install pinax-referrals==4.3.0
+```
+
+## Migration Strategy
+
+### Migration File
+
+```python
+# accounts/migrations/XXXX_add_referral_fields.py
+
+from django.db import migrations, models
+import django.db.models.deletion
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('accounts', '0001_initial'),  # Adjust to last migration
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='customuser',
+            name='referral_code',
+            field=models.CharField(blank=True, max_length=8, unique=True, help_text='Unique referral code for this user'),
+        ),
+        migrations.AddField(
+            model_name='customuser',
+            name='referred_by',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referrals', to='accounts.customuser', help_text='User who referred this user'),
+        ),
+        migrations.AddField(
+            model_name='customuser',
+            name='referral_goal',
+            field=models.PositiveIntegerField(default=10, help_text='Target number of referrals'),
+        ),
+    ]
+```
+
+### Backfilling Existing Users
+
+After migration, generate codes for existing users:
+
+```python
+# Run in Django shell or management command
+from accounts.models import CustomUser
+from django.utils.crypto import get_random_string
+
+def generate_unique_code():
+    while True:
+        code = get_random_string(length=8, allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+        if not CustomUser.objects.filter(referral_code=code).exists():
+            return code
+
+for user in CustomUser.objects.filter(referral_code=''):
+    user.referral_code = generate_unique_code()
+    user.save(update_fields=['referral_code'])
+```
+
+## Rejected Alternatives
+
+### Alternative 1: Separate Referral Model
+
+**What:** Create a `Referral` model linking two users
+
+```python
+class Referral(models.Model):
+    referrer = models.ForeignKey(User, related_name='referrals_made')
+    referred = models.ForeignKey(User, related_name='was_referred')
+    created_at = models.DateTimeField(auto_now_add=True)
+```
+
+**Why Not:**
+- Adds query complexity (join through intermediate table)
+- Only needed if storing metadata (reward status, campaign, etc.)
+- Project requirements don't include referral metadata
+- Self-referential FK is simpler for 1:1 relationships
+
+**When to use:** Multi-level marketing, referral rewards, campaign tracking.
+
+### Alternative 2: UUID for Referral Codes
+
+**What:** Use `uuid.uuid4()` as referral code
+
+```python
+referral_code = models.UUIDField(default=uuid.uuid4, unique=True)
+```
+
+**Why Not:**
+- 36-character strings (`48a6ec8b-4929-426e-a1c3-9381b2e603d3`)
+- Poor UX for sharing verbally or typing
+- Overkill for <1M user scale
+- Harder to include in SMS/social media sharing
+
+**When to use:** Security-critical applications, API integrations, distributed systems.
+
+### Alternative 3: URL Path-Based Referral Codes
+
+**What:** Use URL path instead of query parameter
+
+```
+https://yoursite.com/r/K7X3M9NP/
+```
+
+**Why Not:**
+- Requires additional URL routing
+- Complicates registration flow (redirect needed)
+- Query parameter (`?ref=X`) works seamlessly
+- Less flexible for adding other parameters
+
+**When to use:** Marketing campaigns where clean URLs matter.
+
+### Alternative 4: Cookie-Based Referral Tracking
+
+**What:** Store referral code in cookie, check on registration
+
+**Why Not:**
+- Adds complexity (middleware, cookie management)
+- Privacy concerns (GDPR)
+- Not needed for simple link sharing
+- Cookies can be cleared before registration
+
+**When to use:** Delayed conversion tracking, affiliate marketing.
+
+## Technology Stack Summary
+
+### Required (Already in Project)
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Django | 4.2 LTS | Web framework |
+| Python | 3.14 | Runtime |
+| SQLite | - | Database |
+
+### New Dependencies
+
+**None.** All functionality uses Django built-ins:
+
+- `django.utils.crypto.get_random_string` - Code generation
+- `models.ForeignKey('self', ...)` - Self-referential relationship
+- `request.GET.get('ref')` - URL parameter capture
+
+### Files to Modify
+
+| File | Changes |
+|------|---------|
+| `accounts/models.py` | Add 3 fields, save() override, properties |
+| `accounts/views.py` | Capture ref parameter in register view |
+| `accounts/migrations/XXXX_*.py` | New migration for fields |
+| `templates/registration/register.html` | Hidden field for ref_code |
+| `templates/home.html` | Display referral link, count, progress |
 
 ## Confidence Assessment
 
 | Area | Confidence | Source | Notes |
 |------|------------|--------|-------|
-| Bootstrap 5.3.8 Version | HIGH | Official Bootstrap docs | Verified from getbootstrap.com |
-| CDN Links | HIGH | Official Bootstrap docs | SHA-384 integrity hashes confirmed |
-| Django 4.2 Compatibility | HIGH | django-bootstrap5 PyPI, official docs | Explicitly supported |
-| CDN Recommendation | HIGH | Multiple sources, architectural fit | Best for small template count |
-| Package Recommendations | HIGH | PyPI, GitHub, community consensus | Verified version requirements |
+| Self-referential FK pattern | HIGH | Django ORM Cookbook, official docs | Standard Django pattern |
+| get_random_string | HIGH | Django source code, Python docs | Built-in, cryptographically secure |
+| Package recommendations | HIGH | PyPI, GitHub repos | Verified maintenance status |
+| URL parameter approach | HIGH | Django docs, community patterns | Standard web pattern |
+| Code length/charset | MEDIUM | Security best practices | 8 chars sufficient for scale |
 
 ## Sources
 
 ### Official Documentation
-- [Bootstrap 5.3 Documentation](https://getbootstrap.com/docs/5.3/)
-- [Bootstrap Versions](https://getbootstrap.com/docs/versions/)
-- [django-bootstrap5 PyPI](https://pypi.org/project/django-bootstrap5/)
-- [django-bootstrap5 Documentation](https://django-bootstrap5.readthedocs.io/)
+- [Django Models - Self-referential relationships](https://docs.djangoproject.com/en/4.2/topics/db/models/#recursive-relationships)
+- [Django crypto module](https://docs.djangoproject.com/en/4.2/topics/signing/#module-django.utils.crypto)
+- [Python secrets module](https://docs.python.org/3/library/secrets.html)
 
 ### Community Resources
-- [Django Forum: Bootstrap5 and Django](https://forum.djangoproject.com/t/bootstrap5-and-django/23773)
-- [GitHub: django-bootstrap5](https://github.com/zostera/django-bootstrap5)
-- [GitHub: crispy-bootstrap5](https://github.com/django-crispy-forms/crispy-bootstrap5)
+- [Django ORM Cookbook - Self-referencing ForeignKey](https://books.agiliq.com/projects/django-orm-cookbook/en/latest/self_fk.html)
+- [Understanding Django Self-Referential Foreign Keys](https://studygyaan.com/django/understanding-django-self-referential-foreign-keys)
+- [Django Forum - Foreign key to self](https://forum.djangoproject.com/t/foreign-key-to-self/17227)
 
-### Integration Guides
-- [W3Schools: Django Add Bootstrap 5](https://www.w3schools.com/django/django_add_bootstrap5.php)
-- [Step-by-Step Guide to Add Bootstrap to Django](https://wpdean.com/add-bootstrap-to-django/)
-- [Bootstrap 5 CDN vs NPM Comparison](https://www.vincentschmalbach.com/setting-up-bootstrap-5-cdn-vs-npm/)
+### Package Repositories
+- [django-reflinks GitHub (ARCHIVED)](https://github.com/HearthSim/django-reflinks)
+- [django-simple-referrals PyPI](https://pypi.org/project/django-simple-referrals/) - Last release May 2018
+- [pinax-referrals GitHub](https://github.com/pinax/pinax-referrals)
+- [Django Packages - Referrals Grid](https://djangopackages.org/grids/g/referrals/)
+
+### Code Generation
+- [Django get_random_string examples](https://www.programcreek.com/python/example/68244/django.utils.crypto.get_random_string)
+- [Unique coupon code generation with Django](https://medium.com/@parker.cattell.atkins/unique-gift-coupon-code-generation-with-django-bf8f46ee3b9f)
 
 ## Summary
 
-**Recommended Stack:** Bootstrap 5.3.8 via jsDelivr CDN
-**Packages:** None (hand-code Bootstrap classes in templates)
-**Installation:** None (CDN links in base template)
-**Configuration:** None (no settings.py changes)
+**Recommended Stack:** No new packages. Use Django built-ins only.
 
-**Why:** For 3 simple authentication templates, CDN provides fastest implementation with zero dependencies and excellent performance. Packages add complexity without proportional benefit at this scale.
+**Model approach:** Self-referential ForeignKey on CustomUser with `on_delete=SET_NULL`
 
-**Next milestone consideration:** If v1.2+ adds significant form complexity or customization needs, revisit django-bootstrap5 or crispy-forms.
+**Code generation:** `django.utils.crypto.get_random_string` with 8-char alphanumeric codes
+
+**URL handling:** Query parameter `?ref=CODE` captured in registration view
+
+**Why:** Simple referral tracking (without rewards/MLM) is trivially implementable with standard Django patterns. External packages are either abandoned, overkill, or add unnecessary complexity for this use case.

@@ -17,7 +17,604 @@ Django's template inheritance system provides a powerful pattern for integrating
 
 ---
 
-## Recommended Architecture
+## v1.2 Referral System Architecture
+
+**Added:** 2026-01-19 for v1.2 milestone
+
+### Model Design
+
+#### Recommendation: Extend CustomUser (not separate model)
+
+**Why extend CustomUser:**
+- Each user has exactly one referral goal and one referrer (1:1 relationship)
+- Data always accessed together (profile page shows user + goal)
+- Simpler queries: `user.referral_goal` vs `user.referralprofile.goal`
+- Migration is straightforward on existing table
+
+**Add to CustomUser:**
+
+```python
+# accounts/models.py additions
+
+class CustomUser(AbstractUser):
+    # ... existing fields (cedula, nombre_completo, phone, data_policy_accepted)
+
+    # NEW: Referral fields
+    referred_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referrals'
+    )
+    referral_goal = models.PositiveIntegerField(
+        default=5,
+        verbose_name='Meta de referidos'
+    )
+    referral_code = models.CharField(
+        max_length=12,
+        unique=True,
+        blank=True,
+        verbose_name='Codigo de referido'
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.referral_code:
+            self.referral_code = self._generate_referral_code()
+        super().save(*args, **kwargs)
+
+    def _generate_referral_code(self):
+        """Generate unique referral code based on cedula + random suffix"""
+        import secrets
+        return f"{self.cedula[:4]}{secrets.token_hex(4)}"
+
+    @property
+    def referral_count(self):
+        """Count of users referred by this user"""
+        return self.referrals.count()
+
+    @property
+    def referral_progress_percent(self):
+        """Progress toward goal as percentage (capped at 100)"""
+        if self.referral_goal == 0:
+            return 100
+        return min(100, int((self.referral_count / self.referral_goal) * 100))
+```
+
+#### Data Relationships
+
+```
+CustomUser
+    |
+    +-- referred_by --> CustomUser (nullable FK to self)
+    |
+    +-- referrals --> [CustomUser, ...] (reverse relation: users I referred)
+```
+
+**Query patterns:**
+- Get who referred me: `user.referred_by`
+- Get users I referred: `user.referrals.all()`
+- Count my referrals: `user.referral_count` (property)
+
+#### Why NOT a separate Referral model
+
+A separate model would be needed if:
+- Tracking multiple referral events per user (not our case)
+- Storing referral metadata (timestamp, status, rewards)
+- Referral-specific business logic
+
+Our requirements are simpler: just track who referred whom. Self-referential FK is cleaner.
+
+---
+
+### URL Structure
+
+#### New Routes (all within accounts app)
+
+| URL | Name | View | Purpose |
+|-----|------|------|---------|
+| `/profile/` | `profile` | `profile_view` | Edit user info + set goal |
+| `/referidos/` | `referidos` | `referidos_view` | Table of referred users |
+
+#### Modified Routes
+
+| URL | Change |
+|-----|--------|
+| `/register/` | Accept `?ref=CODE` parameter |
+
+#### Full URL Configuration
+
+```python
+# accounts/urls.py (updated)
+
+urlpatterns = [
+    path('', home, name='home'),                          # existing
+    path('register/', register, name='register'),          # existing (modified)
+    path('login/', CustomLoginView.as_view(), name='login'),  # existing
+    path('logout/', LogoutView.as_view(), name='logout'),  # existing
+    path('profile/', profile_view, name='profile'),        # NEW
+    path('referidos/', referidos_view, name='referidos'),  # NEW
+]
+```
+
+#### Referral Link Format
+
+```
+https://example.com/register/?ref=1234abcd5678
+```
+
+- Parameter: `ref` (short, memorable)
+- Code: 12-char unique code per user
+- Example: First 4 chars of cedula + 8 random hex chars
+
+---
+
+### View Organization
+
+#### New Views Required
+
+```python
+# accounts/views.py additions
+
+@login_required
+def profile_view(request):
+    """Edit user profile and referral goal"""
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil actualizado')
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=request.user)
+    return render(request, 'profile.html', {'form': form})
+
+
+@login_required
+def referidos_view(request):
+    """Display table of referred users"""
+    referidos = request.user.referrals.all().order_by('-date_joined')
+    return render(request, 'referidos.html', {'referidos': referidos})
+```
+
+#### Modified Views
+
+**register() must capture referral code:**
+
+```python
+def register(request):
+    referral_code = request.GET.get('ref')
+    referrer = None
+
+    if referral_code:
+        try:
+            referrer = CustomUser.objects.get(referral_code=referral_code)
+        except CustomUser.DoesNotExist:
+            pass  # Invalid code, proceed without referrer
+
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.referred_by = referrer  # Set referrer before save
+            user.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = CustomUserCreationForm()
+
+    return render(request, 'registration/register.html', {
+        'form': form,
+        'referrer_name': referrer.nombre_completo if referrer else None
+    })
+```
+
+**home() needs referral context:**
+
+```python
+@login_required
+def home(request):
+    """Home page with referral stats"""
+    user = request.user
+    referral_link = request.build_absolute_uri(
+        f"/register/?ref={user.referral_code}"
+    )
+    return render(request, 'home.html', {
+        'user': user,
+        'referral_link': referral_link,
+        'referral_count': user.referral_count,
+        'referral_goal': user.referral_goal,
+        'referral_progress': user.referral_progress_percent,
+    })
+```
+
+#### New Forms Required
+
+```python
+# accounts/forms.py additions
+
+class ProfileForm(forms.ModelForm):
+    """Form for editing profile and referral goal"""
+
+    class Meta:
+        model = CustomUser
+        fields = ['nombre_completo', 'phone', 'referral_goal']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'referral_goal': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'max': '1000'
+            }),
+        }
+
+class PasswordChangeForm(forms.Form):
+    """Separate form for password changes"""
+    current_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+```
+
+---
+
+### Template Structure
+
+#### New Templates
+
+| Template | Extends | Purpose |
+|----------|---------|---------|
+| `templates/profile.html` | `base.html` | Profile edit form |
+| `templates/referidos.html` | `base.html` | Referral table |
+
+#### Template Hierarchy
+
+```
+templates/
+    base.html                    # existing - Bootstrap head/body structure
+    home.html                    # existing - UPDATE: add referral stats + nav links
+    profile.html                 # NEW - profile edit form
+    referidos.html               # NEW - referral table
+    includes/
+        navbar.html              # NEW - extracted navbar for reuse
+    registration/
+        login.html               # existing - no changes
+        register.html            # existing - UPDATE: show referrer name if present
+```
+
+#### Navbar Extraction
+
+Current home.html has navbar inline. Extract to include for DRY:
+
+```html
+<!-- templates/includes/navbar.html -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Pagina Madre</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                       href="{% url 'home' %}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'referidos' %}active{% endif %}"
+                       href="{% url 'referidos' %}">Mis Referidos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                       href="{% url 'profile' %}">Perfil</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <span class="nav-link text-light">{{ user.nombre_completo }}</span>
+                </li>
+                <li class="nav-item">
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            Cerrar Sesion
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+```
+
+#### Profile Page Structure
+
+```html
+<!-- templates/profile.html -->
+{% extends 'base.html' %}
+
+{% block navbar %}
+{% include 'includes/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4>Mi Perfil</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_div }}
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Separate card for password change -->
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <h4>Cambiar Contrasena</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Password change form -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+```
+
+#### Referidos Page Structure
+
+```html
+<!-- templates/referidos.html -->
+{% extends 'base.html' %}
+
+{% block navbar %}
+{% include 'includes/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4>Mis Referidos</h4>
+                    <span class="badge bg-primary">{{ referidos.count }} referidos</span>
+                </div>
+                <div class="card-body">
+                    {% if referidos %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cedula</th>
+                                    <th>Telefono</th>
+                                    <th>Fecha de Registro</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referido in referidos %}
+                                <tr>
+                                    <td>{{ referido.nombre_completo }}</td>
+                                    <td>{{ referido.cedula }}</td>
+                                    <td>{{ referido.phone }}</td>
+                                    <td>{{ referido.date_joined|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Aun no tienes referidos. Comparte tu link!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+```
+
+#### Home Page Updates
+
+Add to existing home.html:
+1. Referral stats card (count, progress bar, goal)
+2. Shareable link with copy-to-clipboard button
+3. Navigation links via navbar include
+
+---
+
+### Component Boundaries
+
+#### What Talks to What
+
+```
+Browser Request
+      |
+      v
++------------------+
+|  Django URLs     |  /register/?ref=CODE
+|  (accounts/urls) |  /profile/
+|                  |  /referidos/
++------------------+
+      |
+      v
++------------------+
+|  Views           |  Handles request, calls model, returns template
+|  (accounts/views)|
++------------------+
+      |
+      +-----> Forms (validation, widget styling)
+      |
+      +-----> Models (data access, computed properties)
+      |
+      v
++------------------+
+|  Templates       |  Renders HTML with context
+|  (templates/)    |
++------------------+
+      |
+      v
+Browser Response
+```
+
+#### Data Flow: Registration with Referral
+
+```
+1. User clicks referral link: /register/?ref=1234abcd5678
+2. register() extracts ref parameter
+3. Query CustomUser by referral_code
+4. If found, store referrer for later
+5. User fills and submits form
+6. On save, set referred_by = referrer
+7. New user created with referrer relationship
+8. Referrer's referral_count property automatically reflects new referral
+```
+
+#### Data Flow: Viewing Referral Progress
+
+```
+1. User visits home page
+2. home() view queries:
+   - user.referral_count (COUNT on referrals relation)
+   - user.referral_goal
+   - user.referral_progress_percent (computed property)
+3. Template renders progress bar and stats
+```
+
+---
+
+### Build Order
+
+Based on dependencies, build in this sequence:
+
+#### Phase 1: Model Foundation
+
+**Dependencies:** None
+**Outputs:** Migration file, model ready for use
+
+1. Add fields to CustomUser model:
+   - `referred_by` (FK to self)
+   - `referral_goal` (PositiveIntegerField)
+   - `referral_code` (CharField, unique)
+2. Add model methods:
+   - `_generate_referral_code()`
+   - `referral_count` property
+   - `referral_progress_percent` property
+3. Create and run migration
+4. Generate referral codes for existing users (data migration)
+
+#### Phase 2: Registration Capture
+
+**Dependencies:** Phase 1 (referral_code field exists)
+**Outputs:** Registration captures referrer
+
+1. Update register() view to extract `ref` parameter
+2. Query referrer by referral_code
+3. Set `referred_by` on new user save
+4. Update register.html to show referrer name (optional UX)
+
+#### Phase 3: Home Page Referral Display
+
+**Dependencies:** Phase 1 (referral_count works)
+**Outputs:** Home shows referral stats and link
+
+1. Update home() view context with referral data
+2. Add referral stats card to home.html
+3. Add shareable link with copy-to-clipboard button
+4. Add progress bar toward goal
+
+#### Phase 4: Navigation Structure
+
+**Dependencies:** None (can parallelize with Phase 3)
+**Outputs:** Navbar available for all authenticated pages
+
+1. Create `templates/includes/navbar.html`
+2. Refactor home.html to use navbar include
+3. Add nav links: Inicio, Mis Referidos, Perfil
+
+#### Phase 5: Profile Page
+
+**Dependencies:** Phase 4 (navbar include exists)
+**Outputs:** Profile page functional
+
+1. Create ProfileForm in forms.py
+2. Create profile_view in views.py
+3. Add URL route
+4. Create profile.html template
+5. Add password change section (separate form)
+
+#### Phase 6: Referidos Page
+
+**Dependencies:** Phase 4 (navbar include exists)
+**Outputs:** Referidos page functional
+
+1. Create referidos_view in views.py
+2. Add URL route
+3. Create referidos.html template with table
+
+#### Suggested Phase Grouping for Roadmap
+
+| Roadmap Phase | Tasks | Rationale |
+|---------------|-------|-----------|
+| **Phase 1: Referral Model** | Build phases 1-2 | Foundation must exist first |
+| **Phase 2: Home Referral UI** | Build phase 3 | Core feature visible to user |
+| **Phase 3: Navigation + Profile** | Build phases 4-5 | Enables profile editing |
+| **Phase 4: Referidos Page** | Build phase 6 | Completes feature set |
+
+---
+
+### Anti-Patterns to Avoid
+
+#### 1. Circular Import Issues
+
+**Risk:** Models importing from views, views importing from forms importing from models
+**Prevention:** Keep imports directional: views import models, forms import models, templates are independent
+
+#### 2. N+1 Query Problems
+
+**Risk:** Looping over referrals and accessing related data
+**Prevention:** Use `select_related()` and `prefetch_related()` in views
+
+```python
+# BAD
+referidos = request.user.referrals.all()
+for r in referidos:
+    print(r.nombre_completo)  # N queries
+
+# GOOD
+referidos = request.user.referrals.select_related().all()
+```
+
+#### 3. Referral Code Collisions
+
+**Risk:** Two users get same referral code
+**Prevention:**
+- Use `unique=True` constraint on field
+- Generate with enough entropy (8 hex chars = 4 billion combinations)
+- Handle IntegrityError and regenerate if collision
+
+#### 4. Self-Referral
+
+**Risk:** User refers themselves (creates loop)
+**Prevention:** Validate in registration that referrer != new user
+
+```python
+if referrer and referrer.cedula == form.cleaned_data['cedula']:
+    referrer = None  # Don't allow self-referral
+```
+
+---
+
+## Recommended Architecture (Original v1.0/v1.1)
 
 ### Template Hierarchy
 
@@ -44,8 +641,8 @@ templates/
 ```
 
 **Current project status:**
-- 3 templates: `home.html`, `registration/login.html`, `registration/register.html`
-- All currently standalone (no inheritance)
+- 4 templates: `base.html`, `home.html`, `registration/login.html`, `registration/register.html`
+- Template inheritance implemented
 - Located in `___/templates/` and `___/templates/registration/`
 
 ---
@@ -161,554 +758,6 @@ templates/
 
 ---
 
-## Child Template Patterns
-
-### Pattern 1: Simple Content Page
-
-**Use case:** Page with simple content, no custom CSS/JS
-
-```django
-{% extends "base.html" %}
-
-{% block title %}Home - Pagina Madre{% endblock %}
-
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <h1>Bienvenido</h1>
-            <p class="lead">Hola, {{ user.nombre_completo|default:user.username }}</p>
-        </div>
-    </div>
-</div>
-{% endblock %}
-```
-
-**Key points:**
-- Bootstrap grid (`container > row > col-*`) goes in the `content` block, NOT in base.html
-- This gives each page control over its layout (full-width, centered, multi-column, etc.)
-
-### Pattern 2: Form Page with Custom Styles
-
-**Use case:** Login/Register pages with centered form and custom styling
-
-```django
-{% extends "base.html" %}
-
-{% block title %}Login - Pagina Madre{% endblock %}
-
-{% block extra_css %}
-<style>
-    .auth-form {
-        max-width: 400px;
-        margin: 0 auto;
-    }
-    .auth-form .form-control {
-        border-radius: 0.5rem;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow-sm auth-form">
-                <div class="card-body">
-                    <h1 class="card-title text-center mb-4">Login</h1>
-
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            <p>Invalid username or password. Please try again.</p>
-                        </div>
-                    {% endif %}
-
-                    <form method="post">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Cédula:</label>
-                            <input type="text"
-                                   name="username"
-                                   id="id_username"
-                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                                   required>
-                            {% if form.username.errors %}
-                                <div class="invalid-feedback">{{ form.username.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">Password:</label>
-                            <input type="password"
-                                   name="password"
-                                   id="id_password"
-                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
-                                   required>
-                            {% if form.password.errors %}
-                                <div class="invalid-feedback">{{ form.password.errors }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <input type="checkbox"
-                                   name="remember_me"
-                                   value="1"
-                                   id="remember_me"
-                                   class="form-check-input">
-                            <label for="remember_me" class="form-check-label">
-                                Remember me (stay logged in for 14 days)
-                            </label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
-                    </form>
-
-                    <p class="text-center mt-3 mb-0">
-                        Don't have an account? <a href="{% url 'register' %}">Create account</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-```
-
-**Key points:**
-- `extra_css` block adds page-specific styles without external file
-- Bootstrap form classes: `form-label`, `form-control`, `is-invalid`, `invalid-feedback`
-- Bootstrap layout classes: `card`, `shadow-sm`, `w-100`, `mb-3`
-
-### Pattern 3: Interactive Page with JavaScript
-
-**Use case:** Page with JavaScript for dynamic behavior
-
-```django
-{% extends "base.html" %}
-
-{% block title %}Dashboard - Pagina Madre{% endblock %}
-
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Dashboard</h1>
-            <button type="button"
-                    class="btn btn-primary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#exampleModal">
-                Open Modal
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Bootstrap Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Example Modal</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Modal content here.
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Custom JavaScript after Bootstrap is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Dashboard loaded');
-
-        // Initialize Bootstrap tooltips/popovers if needed
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-</script>
-{% endblock %}
-```
-
-**Key points:**
-- `extra_js` block ensures JavaScript runs after Bootstrap JS is loaded
-- Bootstrap components (modals, tooltips, etc.) require Bootstrap JS
-- `DOMContentLoaded` ensures DOM is ready before running scripts
-
-### Pattern 4: Extending a Block (Not Replacing)
-
-**Use case:** Add to navbar while keeping default items
-
-```django
-{% extends "base.html" %}
-
-{% block navbar %}
-{{ block.super }}
-<!-- Additional navbar content injected after default navbar -->
-<div class="container-fluid bg-secondary text-white py-2">
-    <div class="container">
-        <small>Special announcement: New feature released!</small>
-    </div>
-</div>
-{% endblock %}
-
-{% block content %}
-<!-- Page content -->
-{% endblock %}
-```
-
-**Key points:**
-- `{{ block.super }}` includes parent block content
-- Allows extending/augmenting instead of replacing
-- Use sparingly (usually for navbar/footer modifications)
-
----
-
-## Bootstrap Grid Integration
-
-### Grid Lives in Content Block, Not Base
-
-**Anti-pattern (DON'T DO THIS):**
-```django
-<!-- base.html - WRONG -->
-<div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            {% block content %}{% endblock %}
-        </div>
-        <div class="col-md-4">
-            {% block sidebar %}{% endblock %}
-        </div>
-    </div>
-</div>
-```
-
-**Why this is bad:**
-- Forces all pages into same grid structure
-- Can't have full-width pages
-- Can't have pages without sidebar
-- Inflexible
-
-**Correct pattern:**
-```django
-<!-- base.html - CORRECT -->
-{% block content %}
-<!-- Child templates control their own layout -->
-{% endblock %}
-
-<!-- child-template.html -->
-{% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            <!-- Main content -->
-        </div>
-        <div class="col-md-4">
-            <!-- Sidebar -->
-        </div>
-    </div>
-</div>
-{% endblock %}
-```
-
-**Why this is better:**
-- Each page controls its layout
-- Full-width pages: skip container, use `container-fluid`
-- Centered content: use `offset-*` classes
-- Different pages, different grids
-
-### Common Grid Patterns
-
-#### Centered Content (Login/Register)
-```django
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <!-- Centered content, takes 50% width on medium+ screens -->
-        </div>
-    </div>
-</div>
-```
-
-#### Two-Column Layout (Dashboard)
-```django
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8">
-            <!-- Main content (66% width) -->
-        </div>
-        <div class="col-md-4">
-            <!-- Sidebar (33% width) -->
-        </div>
-    </div>
-</div>
-```
-
-#### Full-Width Hero + Contained Content
-```django
-<!-- Full-width hero -->
-<div class="bg-primary text-white py-5">
-    <div class="container">
-        <h1>Welcome</h1>
-    </div>
-</div>
-
-<!-- Contained content -->
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <!-- Content -->
-        </div>
-    </div>
-</div>
-```
-
-#### Multi-Column Cards
-```django
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card"><!-- Card 1 --></div>
-        </div>
-        <div class="col-md-4">
-            <div class="card"><!-- Card 2 --></div>
-        </div>
-        <div class="col-md-4">
-            <div class="card"><!-- Card 3 --></div>
-        </div>
-    </div>
-</div>
-```
-
----
-
-## File Organization
-
-### Project-Level Templates (Recommended)
-
-**Directory structure:**
-```
-project_root/
-├── manage.py
-├── pagina_madre/              # Project config
-│   ├── settings.py
-│   └── urls.py
-├── ___/                       # App directory
-│   ├── models.py
-│   ├── views.py
-│   └── urls.py
-└── templates/                 # Project-level templates
-    ├── base.html              # Site-wide base
-    ├── home.html
-    └── registration/
-        ├── login.html
-        └── register.html
-```
-
-**settings.py configuration:**
-```python
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Project-level templates
-        'APP_DIRS': True,  # Also check app-level templates
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-```
-
-**Template lookup order:**
-1. Project-level: `templates/` (checked first)
-2. App-level: `___/templates/` (checked if not found in project-level)
-
-**Why project-level is recommended:**
-- Centralized location (easier to find templates)
-- Easier to enforce consistent base template usage
-- Clearer separation between app logic and presentation
-- Better for projects with multiple apps sharing templates
-
-### App-Level Templates (Alternative)
-
-**Directory structure:**
-```
-project_root/
-├── manage.py
-├── pagina_madre/
-│   ├── settings.py
-│   └── urls.py
-└── ___/
-    ├── models.py
-    ├── views.py
-    ├── urls.py
-    └── templates/
-        ├── base.html          # Could be duplicated across apps
-        ├── ___/               # App name subdirectory (namespace)
-        │   └── home.html
-        └── registration/
-            ├── login.html
-            └── register.html
-```
-
-**When to use:**
-- Reusable Django apps (distributed separately)
-- Very large projects with independent app teams
-- Apps that need isolated template namespaces
-
-**Namespace pattern:**
-```django
-<!-- Without namespace -->
-{% extends "base.html" %}  <!-- Which app's base.html? -->
-
-<!-- With namespace -->
-{% extends "___/base.html" %}  <!-- Explicitly from ___ app -->
-```
-
-### Current Project Migration Path
-
-**Current state:**
-```
-___/templates/
-├── home.html
-└── registration/
-    ├── login.html
-    └── register.html
-```
-
-**Recommended migration:**
-```
-1. Create project-level templates/
-2. Move ___/templates/ → templates/
-3. Create templates/base.html
-4. Update home.html, login.html, register.html to extend base.html
-5. Delete ___/templates/ (now empty)
-```
-
-**Result:**
-```
-templates/
-├── base.html              # NEW: Site-wide base
-├── home.html              # MOVED + UPDATED to extend base.html
-└── registration/
-    ├── login.html         # MOVED + UPDATED to extend base.html
-    └── register.html      # MOVED + UPDATED to extend base.html
-```
-
----
-
-## Template Naming Conventions
-
-### Block Names (Community Standard)
-
-| Block Name | Purpose | Notes |
-|------------|---------|-------|
-| `title` | Page title in `<title>` tag | Always override |
-| `extra_css` | Additional CSS after framework CSS | Additive |
-| `extra_head` | Additional `<head>` content (meta tags, etc.) | Additive |
-| `navbar` | Navigation bar | Rarely override |
-| `messages` | Django messages/alerts | Rarely override |
-| `content` | Main page content | Always override |
-| `sidebar` | Sidebar content (if base has sidebar) | Optional override |
-| `footer` | Site footer | Rarely override |
-| `extra_js` | Additional JS after framework JS | Additive |
-
-**Naming conventions:**
-- Use `extra_*` for additive blocks (CSS, JS, head content)
-- Use descriptive nouns for content areas (`navbar`, `content`, `footer`)
-- Use `block.super` when extending instead of replacing
-
-### Template File Names
-
-| Pattern | Example | Use Case |
-|---------|---------|----------|
-| `base.html` | `base.html` | Site-wide base template |
-| `base_SECTION.html` | `base_auth.html` | Section-specific base |
-| `OBJECT_list.html` | `user_list.html` | List view (Django convention) |
-| `OBJECT_detail.html` | `user_detail.html` | Detail view (Django convention) |
-| `OBJECT_form.html` | `user_form.html` | Create/Update form (Django convention) |
-| `OBJECT_confirm_delete.html` | `user_confirm_delete.html` | Delete confirmation (Django convention) |
-| `ACTION.html` | `login.html`, `register.html` | Action-specific pages |
-| `PAGE.html` | `home.html`, `about.html` | Simple content pages |
-
-**Why follow Django conventions:**
-- Generic views automatically look for these names
-- Easier for other Django developers to understand
-- Consistent with Django ecosystem
-
-### Layout Templates (Advanced)
-
-For complex projects with multiple layouts:
-
-```
-templates/
-├── base.html                  # Site-wide base
-├── layouts/
-│   ├── single_column.html     # Extends base.html
-│   ├── two_column.html        # Extends base.html
-│   └── three_column.html      # Extends base.html
-└── pages/
-    └── about.html             # Extends layouts/single_column.html
-```
-
-**Layout template example:**
-```django
-<!-- layouts/two_column.html -->
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8">
-            {% block main_column %}{% endblock %}
-        </div>
-        <div class="col-md-4">
-            {% block sidebar_column %}{% endblock %}
-        </div>
-    </div>
-</div>
-{% endblock %}
-```
-
-**Page using layout:**
-```django
-<!-- pages/blog_post.html -->
-{% extends "layouts/two_column.html" %}
-
-{% block main_column %}
-    <h1>{{ post.title }}</h1>
-    <p>{{ post.content }}</p>
-{% endblock %}
-
-{% block sidebar_column %}
-    <h3>Related Posts</h3>
-    <!-- Sidebar content -->
-{% endblock %}
-```
-
-**When to use layout templates:**
-- Multiple distinct layouts in the same project
-- Frequently reused column structures
-- Complex grid patterns
-
-**When NOT to use:**
-- Simple projects (like current Pagina Madre)
-- When most pages have unique layouts
-- Adds unnecessary complexity for 3-5 templates
-
----
-
 ## Anti-Patterns to Avoid
 
 ### Anti-Pattern 1: Repeating Bootstrap Includes
@@ -725,29 +774,15 @@ templates/
     <h1>Login</h1>
 </body>
 </html>
-
-<!-- register.html - BAD -->
-<!DOCTYPE html>
-<html>
-<head>
-    <link href="bootstrap.css" rel="stylesheet">  <!-- Duplicated -->
-</head>
-<body>
-    <h1>Register</h1>
-</body>
-</html>
 ```
 
 **Why bad:**
 - Violates DRY principle
 - If Bootstrap CDN changes, must update every template
-- Easy to miss a template during updates
-- Inconsistent versions across pages
 
 **Prevention:**
 - Create `base.html` with Bootstrap includes
 - Child templates extend `base.html`
-- Single source of truth for CSS/JS
 
 ### Anti-Pattern 2: Hardcoding Grid in Base Template
 
@@ -767,486 +802,53 @@ templates/
 
 **Why bad:**
 - Every page forced into same grid structure
-- Can't do full-width backgrounds
-- Can't do multi-column layouts
-- Inflexible
+- Can't have full-width pages
 
 **Prevention:**
 - Keep base template grid-agnostic
 - Let child templates define their own grid structure
-- Base template only provides framework includes and navbar/footer
 
-### Anti-Pattern 3: No Block for Extra CSS/JS
+### Anti-Pattern 3: Deep Inheritance Chains
 
 **What goes wrong:**
-```django
-<!-- base.html - BAD -->
-<head>
-    <link href="bootstrap.css" rel="stylesheet">
-    <!-- No {% block extra_css %} -->
-</head>
-<body>
-    {% block content %}{% endblock %}
-    <script src="bootstrap.js"></script>
-    <!-- No {% block extra_js %} -->
-</body>
 ```
-
-**Why bad:**
-- Child templates can't add page-specific CSS/JS
-- Forces creation of separate CSS files for every page
-- Can't use inline `<style>` or `<script>` tags strategically
-
-**Prevention:**
-- Always include `{% block extra_css %}` in `<head>` after framework CSS
-- Always include `{% block extra_js %}` before `</body>` after framework JS
-
-### Anti-Pattern 4: Deep Inheritance Chains
-
-**What goes wrong:**
-```django
-base.html → base_section.html → base_subsection.html → base_sub_subsection.html → page.html
+base.html -> base_section.html -> base_subsection.html -> page.html
 ```
 
 **Why bad:**
 - Hard to debug ("Which template defined this block?")
-- Performance overhead (Django walks the inheritance chain)
-- Confusing for new developers
-- Usually indicates over-engineering
+- Performance overhead
 
 **Prevention:**
-- Limit to 2-3 levels: base.html → base_section.html → page.html
-- If you need more levels, reconsider architecture
+- Limit to 2-3 levels
 - Use `{% include %}` for reusable components instead
-
-### Anti-Pattern 5: Forgetting `{% extends %}` as First Tag
-
-**What goes wrong:**
-```django
-<!-- login.html - BAD -->
-{% load static %}  <!-- Template tag before extends -->
-{% extends "base.html" %}
-
-{% block content %}
-    Content here
-{% endblock %}
-```
-
-**Why bad:**
-- Django requires `{% extends %}` as first tag
-- Template won't inherit from base
-- Cryptic error message
-
-**Prevention:**
-- **Always** put `{% extends %}` on line 1
-- Put `{% load %}` tags after `{% extends %}`
-- Use linter/IDE to catch this
-
-**Correct version:**
-```django
-<!-- login.html - GOOD -->
-{% extends "base.html" %}
-{% load static %}
-
-{% block content %}
-    Content here
-{% endblock %}
-```
-
-### Anti-Pattern 6: Not Using Bootstrap Form Classes
-
-**What goes wrong:**
-```django
-<!-- form.html - BAD -->
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}  <!-- Unstyled Django forms -->
-    <button type="submit">Submit</button>
-</form>
-```
-
-**Why bad:**
-- `form.as_p` generates unstyled HTML
-- Doesn't use Bootstrap classes (`form-control`, `form-label`, etc.)
-- Looks inconsistent with Bootstrap theme
-- Can't customize form layout
-
-**Prevention:**
-- Manually render form fields with Bootstrap classes
-- Use django-crispy-forms with crispy-bootstrap5
-- Use django-bootstrap5 template tags
-
-**Manual rendering (recommended for learning):**
-```django
-<form method="post">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="{{ form.username.id_for_label }}" class="form-label">
-            Username
-        </label>
-        {{ form.username.as_widget }}
-        {% if form.username.errors %}
-            <div class="invalid-feedback">{{ form.username.errors }}</div>
-        {% endif %}
-    </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-```
-
-**Using django-bootstrap5 (alternative):**
-```django
-{% load django_bootstrap5 %}
-
-<form method="post">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    {% bootstrap_button button_type="submit" content="Submit" %}
-</form>
-```
-
----
-
-## Bootstrap Components Integration
-
-### Using Bootstrap Components in Templates
-
-Bootstrap 5 provides many components (modals, alerts, tooltips, etc.) that require specific HTML structure and sometimes JavaScript initialization.
-
-#### Alerts (for Django Messages)
-
-```django
-<!-- base.html messages block -->
-{% block messages %}
-{% if messages %}
-    <div class="container mt-3">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
-{% endblock %}
-```
-
-**Django message tags to Bootstrap classes:**
-```python
-# settings.py
-from django.contrib.messages import constants as messages
-
-MESSAGE_TAGS = {
-    messages.DEBUG: 'secondary',
-    messages.INFO: 'info',
-    messages.SUCCESS: 'success',
-    messages.WARNING: 'warning',
-    messages.ERROR: 'danger',
-}
-```
-
-#### Modals
-
-```django
-<!-- Trigger button -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
-    Delete Item
-</button>
-
-<!-- Modal markup -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="confirmModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to delete this item?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form method="post" action="{% url 'delete_item' item.id %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-```
-
-#### Cards
-
-```django
-<div class="card">
-    <div class="card-header">
-        Featured
-    </div>
-    <div class="card-body">
-        <h5 class="card-title">Card Title</h5>
-        <p class="card-text">Card content goes here.</p>
-        <a href="#" class="btn btn-primary">Go somewhere</a>
-    </div>
-    <div class="card-footer text-muted">
-        2 days ago
-    </div>
-</div>
-```
-
-#### Forms with Validation States
-
-```django
-<div class="mb-3">
-    <label for="email" class="form-label">Email</label>
-    <input type="email"
-           class="form-control {% if form.email.errors %}is-invalid{% endif %}"
-           id="email"
-           name="email"
-           value="{{ form.email.value|default:'' }}">
-    {% if form.email.errors %}
-        <div class="invalid-feedback">
-            {{ form.email.errors }}
-        </div>
-    {% else %}
-        <div class="form-text">We'll never share your email.</div>
-    {% endif %}
-</div>
-```
-
----
-
-## Scalability Considerations
-
-### Template Architecture at Different Scales
-
-| Project Size | Template Count | Recommended Structure | Notes |
-|--------------|----------------|----------------------|-------|
-| Small (1-10 pages) | <20 templates | `base.html` + page templates | Current Pagina Madre |
-| Medium (10-50 pages) | 20-100 templates | `base.html` + section bases + page templates | Add `base_auth.html`, `base_dashboard.html` |
-| Large (50+ pages) | 100+ templates | Multi-level hierarchy + layout templates | Consider app-level organization |
-| Enterprise | 500+ templates | Multiple apps with isolated templates | App-level templates with namespaces |
-
-### When to Add Section Base Templates
-
-**Current structure (sufficient for now):**
-```
-templates/
-├── base.html
-├── home.html
-├── registration/login.html
-└── registration/register.html
-```
-
-**Add section bases when:**
-- 5+ pages share common layout/structure
-- Section needs different navbar/sidebar
-- Section has common CSS/JS across pages
-
-**Example expansion:**
-```
-templates/
-├── base.html                     # Site-wide
-├── base_auth.html               # Extends base.html (auth pages)
-├── base_dashboard.html          # Extends base.html (dashboard pages)
-├── home.html                    # Extends base.html
-├── registration/
-│   ├── login.html               # Extends base_auth.html
-│   ├── register.html            # Extends base_auth.html
-│   └── password_reset.html      # Extends base_auth.html
-└── dashboard/
-    ├── home.html                # Extends base_dashboard.html
-    ├── profile.html             # Extends base_dashboard.html
-    └── settings.html            # Extends base_dashboard.html
-```
-
-### Performance Optimization
-
-**Template caching:**
-```python
-# settings.py
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'loaders': [
-                ('django.template.loaders.cached.Loader', [
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                ]),
-            ],
-        },
-    },
-]
-```
-
-**When to use cached loader:**
-- Production only (not development)
-- After template structure is stable
-- Provides ~2-3x template rendering speedup
-
-**Bootstrap CDN vs Local:**
-- **CDN (recommended for small/medium projects):** Faster initial load due to browser caching, no setup needed
-- **Local (for large/enterprise):** Full control over versioning, works offline, can customize Bootstrap
-
----
-
-## Migration Plan for Current Templates
-
-### Step-by-Step Migration
-
-**Current state analysis:**
-- 3 templates: `home.html`, `login.html`, `register.html`
-- All standalone (no inheritance)
-- No Bootstrap (plain HTML)
-- Located in `___/templates/` and `___/templates/registration/`
-
-**Migration steps:**
-
-1. **Create project-level templates directory**
-   ```bash
-   mkdir templates
-   ```
-
-2. **Update settings.py**
-   ```python
-   TEMPLATES = [
-       {
-           'BACKEND': 'django.template.backends.django.DjangoTemplates',
-           'DIRS': [BASE_DIR / 'templates'],  # Add this
-           'APP_DIRS': True,
-           ...
-       },
-   ]
-   ```
-
-3. **Create base.html**
-   - Include Bootstrap 5 CSS/JS from CDN
-   - Define blocks: `title`, `extra_css`, `navbar`, `messages`, `content`, `footer`, `extra_js`
-   - Add responsive navbar with user auth status
-
-4. **Move and update templates**
-   ```bash
-   mv ___/templates/home.html templates/home.html
-   mkdir templates/registration
-   mv ___/templates/registration/login.html templates/registration/login.html
-   mv ___/templates/registration/register.html templates/registration/register.html
-   ```
-
-5. **Update each template to extend base.html**
-   - Add `{% extends "base.html" %}` as first line
-   - Wrap content in `{% block content %}...{% endblock %}`
-   - Add Bootstrap classes to existing HTML
-   - Add `{% block title %}` for page-specific titles
-
-6. **Test each page**
-   - Verify navbar appears
-   - Verify Bootstrap styles applied
-   - Verify forms still work
-   - Verify user auth displayed correctly
-
-7. **Clean up**
-   ```bash
-   rmdir ___/templates/registration
-   rmdir ___/templates
-   ```
-
-### Before/After Comparison
-
-**Before (login.html):**
-```django
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pagina Madre</title>
-</head>
-<body>
-    <h1>Login</h1>
-    <form method="post">
-        {% csrf_token %}
-        <p>
-            <label for="id_username">Cédula:</label>
-            {{ form.username }}
-        </p>
-        <button type="submit">Login</button>
-    </form>
-</body>
-</html>
-```
-
-**After (login.html):**
-```django
-{% extends "base.html" %}
-
-{% block title %}Login - Pagina Madre{% endblock %}
-
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h1 class="card-title text-center mb-4">Login</h1>
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Cédula:</label>
-                            <input type="text"
-                                   name="username"
-                                   id="id_username"
-                                   class="form-control"
-                                   required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-```
-
-**Benefits:**
-- DRY: Bootstrap includes in one place
-- Consistent: navbar/footer on all pages
-- Maintainable: change base.html, all pages update
-- Styled: Bootstrap classes applied
 
 ---
 
 ## Sources
 
-**Official Django Documentation:**
-- [The Django template language](https://docs.djangoproject.com/en/6.0/ref/templates/language/) - Official template inheritance and block tag documentation
-- [Built-in template tags and filters](https://docs.djangoproject.com/en/6.0/ref/templates/builtins/) - Reference for template tags
+**Existing Codebase:**
+- `/Users/Diego.Lopezruiz/Documents/Repositories/Pagina-Madre-1/___/accounts/models.py`
+- `/Users/Diego.Lopezruiz/Documents/Repositories/Pagina-Madre-1/___/accounts/views.py`
+- `/Users/Diego.Lopezruiz/Documents/Repositories/Pagina-Madre-1/___/templates/`
 
-**Django Best Practices:**
-- [Django Best Practices: Template Structure](https://learndjango.com/tutorials/template-structure) - Project-level vs app-level templates
-- [Effective Implementation of Django Templates](https://bastakiss.com/blog/django-6/effective-implementation-of-django-templates-structure-inheritance-and-best-practices-800) - Structure and inheritance patterns
-- [Handling Django Template Inheritance Best Practices](https://moldstud.com/articles/p-handling-django-template-inheritance-best-practices-for-reusable-and-dry-code) - DRY code practices
+**Django Documentation:**
+- Django ForeignKey to self pattern: Django 4.2 documentation (models.ForeignKey with 'self')
+- Template inheritance: Django template language documentation
 
-**Bootstrap Integration:**
-- [Django - Add Bootstrap 5](https://www.w3schools.com/django/django_add_bootstrap5.php) - Basic Bootstrap 5 setup
-- [How to Integrate Bootstrap 5 in Django](https://studygyaan.com/django/how-to-integrate-bootstrap-template-in-django) - CDN integration guide
-- [django-bootstrap5 Documentation](https://django-bootstrap5.readthedocs.io/) - Official django-bootstrap5 package
-- [django-bootstrap5 PyPI](https://pypi.org/project/django-bootstrap5/) - Package information and version history
+**Project Requirements:**
+- `.planning/PROJECT.md` v1.2 requirements section
 
-**Template Architecture Patterns:**
-- [An Architecture for Django Templates](https://oncampus.oberlin.edu/webteam/2012/09/architecture-django-templates) - Block naming conventions and layout templates
-- [Django Template Blocks](https://www.compilenrun.com/docs/framework/django/django-templates/django-template-blocks/) - Block usage patterns
-- [Templates & Blocks Reference - Django AdminLTE](https://django-adminlte2.readthedocs.io/en/latest/templates_and_blocks.html) - Advanced block structure
+---
 
-**Community Resources:**
-- [GitHub: django-bootstrap-base-template](https://github.com/gunthercox/django-bootstrap-base-template) - Example base templates
-- [GitHub: plumdog/django-bootstrap-base-template](https://github.com/plumdog/django-bootstrap-base-template) - Another example implementation
-- [Understanding Django template inheritance](https://dev.to/doridoro/understanding-django-template-inheritance-d8c) - Tutorial on template inheritance
+## Confidence Assessment
 
-**Confidence Level:** HIGH
-- Official Django documentation verified
-- Bootstrap integration patterns from multiple authoritative sources
-- Community conventions documented in multiple resources
-- Current as of January 2026 (Bootstrap 5, Django 5/6)
+| Area | Confidence | Reason |
+|------|------------|--------|
+| v1.2 Model design | HIGH | Standard Django self-referential FK pattern, verified against existing model |
+| v1.2 URL structure | HIGH | Follows existing accounts/urls.py pattern |
+| v1.2 View organization | HIGH | Matches existing views.py patterns |
+| v1.2 Template structure | HIGH | Extends existing template inheritance |
+| v1.2 Build order | HIGH | Based on clear dependencies |
+| Original template patterns | HIGH | Official Django documentation verified |
+| Bootstrap integration | HIGH | Multiple authoritative sources |

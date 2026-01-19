@@ -1,174 +1,143 @@
-# Research Summary: v1.1 UI Polish
+# Research Summary: v1.2 Referrals
 
 **Project:** ___ (Django Authentication Portal)
-**Milestone:** v1.1 UI Polish
+**Milestone:** v1.2 Referrals
 **Research Date:** 2026-01-19
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Bootstrap 5.3.8 integration via CDN is the optimal approach for this project. No Django packages needed — the 3-template scope doesn't justify package overhead. Create a base template with Bootstrap includes, extend existing templates, and apply Bootstrap classes to forms and layouts.
+Referral tracking for this Django app is straightforward with standard patterns. **No external packages needed** — use a self-referential ForeignKey on CustomUser with 3 new fields. The main complexity is in the registration flow (capturing referral codes) and ensuring proper migration handling.
 
-**Key insight:** The primary challenge is Django form widget styling, not Bootstrap itself. Forms render without Bootstrap classes by default — this requires explicit widget class assignment in forms.py.
+**Key insight:** Use `on_delete=SET_NULL` (not CASCADE) to prevent deleting referred users when a referrer is deleted.
 
 ## Stack Decision
 
-**Use Bootstrap 5.3.8 via jsDelivr CDN:**
+**Use Django built-ins only:**
 
-```html
-<!-- CSS in <head> -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-..."
-      crossorigin="anonymous">
+- `models.ForeignKey('self', on_delete=SET_NULL)` — referrer relationship
+- `django.utils.crypto.get_random_string` — 8-char referral code generation
+- `request.GET.get('ref')` — URL parameter capture
 
-<!-- JS before </body> -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-..."
-        crossorigin="anonymous"></script>
+**No pip packages needed.** Existing referral packages (django-reflinks, django-simple-referrals, pinax-referrals) are either abandoned, archived, or overkill for simple tracking.
+
+**Model additions to CustomUser:**
+```python
+referral_code = CharField(max_length=8, unique=True)  # Auto-generated
+referred_by = ForeignKey('self', on_delete=SET_NULL, null=True, related_name='referrals')
+referral_goal = PositiveIntegerField(default=10)
 ```
-
-**No pip packages. No settings.py changes. No build process.**
-
-**Rejected alternatives:**
-- django-bootstrap5 — Excellent but overkill for 3 templates
-- django-crispy-forms — Unnecessary complexity for simple auth forms
-- npm + static files — Adds build complexity without benefit
 
 ## Feature Requirements
 
 **Table Stakes (must have):**
-1. Card-based form containers with shadow
-2. Form controls with `form-control` class
-3. Form validation feedback (`.is-invalid`, `.invalid-feedback`)
-4. Alert component for Django messages
-5. Primary button styling
-6. Checkbox components (`.form-check`)
-7. Responsive mobile-first layout
-8. Proper spacing utilities
 
-**Nice-to-haves (if time permits):**
-- Input group icons (Bootstrap Icons)
-- Password visibility toggle
-- Loading state on submit buttons
+| Feature | Complexity | Notes |
+|---------|------------|-------|
+| Referral link per user | Low | 8-char code, auto-generated |
+| Registration captures referrer | Low | `?ref=CODE` URL param |
+| Home: referral count | Low | `user.referrals.count()` |
+| Home: progress toward goal | Low | Bootstrap progress bar |
+| Home: shareable link | Low | Copy-to-clipboard button |
+| Profile: edit nombre, telefono | Low | Simple ModelForm |
+| Profile: change password | Medium | Django PasswordChangeForm |
+| Profile: set referral goal | Low | Integer field |
+| Referidos: table with 4 columns | Low | Bootstrap table |
+| Navigation links | Low | Navbar update |
+
+**Nice-to-haves (if time):**
+- Copy-to-clipboard with feedback toast
+- Empty state messaging ("No tienes referidos aún")
+- Table zebra striping (`.table-striped`)
 
 **Anti-features (avoid):**
-- Social login buttons without backend
-- Floating labels (accessibility concerns)
-- Modal/popup login forms
-- Custom checkbox styling beyond Bootstrap
+- Multi-level referral tracking (MLM complexity)
+- Referral rewards/incentives (out of scope)
+- Self-referral prevention logic (overkill for <100 users)
+- Referral analytics dashboard (overengineering)
 
 ## Architecture Pattern
 
-**Template inheritance hierarchy:**
+**Model design:** Extend CustomUser (not separate model)
+- Simple 1:1 referrer relationship
+- Data always accessed together
 
-```
-templates/
-├── base.html              # Bootstrap CDN includes, common blocks
-├── home.html              # Extends base.html
-└── registration/
-    ├── login.html         # Extends base.html
-    └── register.html      # Extends base.html
-```
+**URL structure:**
+- `/register/?ref=CODE` — modified to capture referrer
+- `/profile/` — new page for editing
+- `/referidos/` — new page with table
 
-**Base template blocks:**
-- `title` — Page title
-- `extra_css` — Page-specific styles
-- `content` — Main page content (each page controls its own grid)
-- `extra_js` — Page-specific scripts
-
-**Key principle:** Bootstrap grid (container/row/col) lives in child templates, not base. Each page controls its own layout.
+**Template structure:**
+- Extract navbar to `includes/navbar.html` for reuse
+- Create `profile.html` and `referidos.html`
+- Update `home.html` with referral stats
 
 ## Critical Pitfalls
 
 | Pitfall | Prevention |
 |---------|------------|
-| Forms render without Bootstrap classes | Override widget attrs in forms.py `__init__` |
-| Checkboxes need specific wrapper structure | Manual HTML with `.form-check` div wrapper |
-| CSRF token placement | Put `{% csrf_token %}` first inside `<form>` |
-| Inherited password fields lack styling | Override in CustomUserCreationForm `__init__` |
-| Missing viewport meta tag | Add `<meta name="viewport" ...>` in base.html |
-
-**Your specific forms need:**
-- `CustomUserCreationForm`: Override `__init__` to add `form-control` to password1/password2
-- `data_policy_accepted`: Manual checkbox HTML with `.form-check` wrapper
-- `remember_me`: Same manual checkbox treatment
-- All text inputs: Add `form-control` class via widget attrs
+| CASCADE deletes referred users | Use `on_delete=SET_NULL` |
+| Migration fails on existing users | Add field with `null=True` |
+| Existing users have no codes | Data migration to backfill |
+| Self-referral fraud | Check cedula match (optional) |
+| Division by zero on goal | Handle goal=0 in template |
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+**Suggested phase structure:**
 
-### Phase 4: Bootstrap Foundation
+### Phase 7: Referral Model Foundation
+- Add 3 fields to CustomUser
+- Create migration
+- Backfill referral codes for existing users
+- Update registration to capture `?ref=` param
 
-**Goal:** Base template with Bootstrap CDN and responsive structure
+### Phase 8: Home Page Referral UI
+- Display referral count and progress bar
+- Show shareable referral link with copy button
+- Add navigation links to new pages
 
-**Tasks:**
-1. Create `base.html` with Bootstrap 5.3.8 CDN includes
-2. Add viewport meta tag for mobile responsiveness
-3. Define template blocks (title, content, extra_css, extra_js)
-4. Update existing templates to extend base.html
+### Phase 9: Profile Page
+- Create ProfileForm for nombre, telefono, goal
+- Add password change section (Django built-in)
+- Extract navbar to include
 
-**Addresses:** FEATURES (responsive layout), ARCHITECTURE (template inheritance)
-**Avoids:** PITFALLS (missing viewport, duplicate includes)
-
-### Phase 5: Styled Auth Pages
-
-**Goal:** Professional login and registration forms
-
-**Tasks:**
-1. Update `CustomUserCreationForm` widget classes in forms.py
-2. Style login.html with Bootstrap card, form controls, checkbox
-3. Style register.html with Bootstrap card, form controls, checkboxes
-4. Add form validation feedback classes
-5. Style alert messages for Django messages framework
-
-**Addresses:** FEATURES (card, forms, validation, alerts), STACK (form-control classes)
-**Avoids:** PITFALLS (unstyled widgets, broken checkboxes, missing validation styling)
-
-### Phase 6: Styled Home Page
-
-**Goal:** Welcoming dashboard with navigation
-
-**Tasks:**
-1. Add Bootstrap navbar component
-2. Style user greeting and logout button
-3. Ensure responsive layout
-
-**Addresses:** FEATURES (dashboard, navbar)
-**Uses:** STACK (Bootstrap components)
+### Phase 10: Referidos Page
+- Create table with 4 columns
+- Empty state handling
+- Pagination (if needed)
 
 **Phase ordering rationale:**
-- Foundation first → all other templates inherit Bootstrap includes
-- Auth pages before home → users see styled pages at first interaction
-- Forms.py changes in Phase 5 → affects both login and register
-
-**Research flags for phases:**
-- Phase 4: Standard patterns, unlikely to need additional research
-- Phase 5: Form widget styling is well-documented but requires attention
-- Phase 6: Standard Bootstrap components, straightforward
+- Model first — all other features depend on it
+- Home page — users see value immediately
+- Profile — enables goal setting
+- Referidos — completes feature set
 
 ## Estimated Effort
 
 | Phase | Estimate |
 |-------|----------|
-| Phase 4: Foundation | 1-2 hours |
-| Phase 5: Auth Pages | 3-4 hours |
-| Phase 6: Home Page | 1-2 hours |
-| **Total** | **5-8 hours** |
+| Phase 7: Model Foundation | 1-2 hours |
+| Phase 8: Home Referral UI | 1-2 hours |
+| Phase 9: Profile Page | 2-3 hours |
+| Phase 10: Referidos Page | 1-2 hours |
+| **Total** | **5-9 hours** |
 
 ## Open Questions
 
-None — Bootstrap 5 + Django integration is well-documented with stable patterns.
+1. **Password change:** Use Django's built-in PasswordChangeView or custom form?
+   - Recommendation: Django built-in (proven, secure)
+
+2. **Referral goal time period:** All-time count or monthly?
+   - User requirement says "total count" — use all-time
 
 ## Sources
 
-- Bootstrap 5.3 Official Documentation (getbootstrap.com)
-- Django Template Language Documentation (djangoproject.com)
-- LearnDjango Best Practices
-- django-bootstrap5 Documentation
-- Multiple community tutorials and Stack Overflow answers
+- Django ORM Cookbook (self-referential FK patterns)
+- Django official documentation (ForeignKey, get_random_string)
+- Bootstrap 5 documentation (progress bars, tables)
+- OWASP (URL parameter security)
 
 ---
 
-*Research complete. Ready for `/gsd:define-requirements` or `/gsd:create-roadmap`.*
+*Research complete. Ready for `/gsd:define-requirements` or roadmap creation.*
