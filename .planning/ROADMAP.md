@@ -64,7 +64,10 @@ Plans:
 3. User can click logout button from home page and return to login
 4. Unauthenticated access to home page redirects to login
 
-**Plans:** (created by /gsd:plan-phase)
+**Plans:** 1 plan
+
+Plans:
+- [ ] 03-01-PLAN.md — Home page with user info and logout functionality
 
 ---
 
