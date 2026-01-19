@@ -8,7 +8,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'password1', 'password2', 'nombre_completo', 'cedula', 'phone', 'data_policy_accepted')
+        fields = ('password1', 'password2', 'nombre_completo', 'cedula', 'phone', 'data_policy_accepted')
 
     def clean_data_policy_accepted(self):
         """Validate that user accepted the data policy"""
@@ -16,3 +16,11 @@ class CustomUserCreationForm(UserCreationForm):
         if not accepted:
             raise ValidationError('You must accept the data policy to register')
         return accepted
+
+    def save(self, commit=True):
+        """Set username to cedula before saving"""
+        user = super().save(commit=False)
+        user.username = self.cleaned_data['cedula']
+        if commit:
+            user.save()
+        return user
