@@ -7,19 +7,30 @@ from .forms import CustomUserCreationForm
 
 
 def register(request):
-    """User registration view"""
+    """User registration view with referral code capture."""
+    # REG-01: Capture ref parameter from URL
+    ref_code = request.GET.get('ref')
+    referrer = None
+
+    # REG-02/REG-03: Look up referrer, gracefully handle invalid/missing
+    if ref_code:
+        from .models import CustomUser
+        referrer = CustomUser.objects.filter(referral_code=ref_code).first()
+
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.referred_by = referrer  # May be None if invalid/missing code
+            user.save()
             login(request, user)
-            # Try to redirect to 'home', fallback to admin if not available
             try:
                 return redirect('home')
             except:
                 return redirect('/admin/')
     else:
         form = CustomUserCreationForm()
+
     return render(request, 'registration/register.html', {'form': form})
 
 
