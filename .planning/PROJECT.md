@@ -8,6 +8,18 @@ A Django-based authentication portal for Colombian users with professional Boots
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
+## Current Milestone: v1.2 Referrals
+
+**Goal:** Add referral system with tracking, profile management, and referral details page
+
+**Target features:**
+- Referral link per user (embedded in registration URL)
+- Track referrer-referred relationships
+- Home page: referral count, progress toward goal, shareable link
+- Profile page: edit nombre, teléfono, password, set referral goal
+- Referidos page: table of referred users with details
+- Navigation from home to new pages
+
 ## Current State
 
 **Shipped:** v1.1 UI Polish (2026-01-19)
@@ -51,7 +63,15 @@ Users can securely register and authenticate to access the portal. If authentica
 
 ### Active
 
-(None — ready for next milestone)
+- [ ] Referral link generation (unique per user, embedded in registration URL)
+- [ ] Registration captures referrer from URL parameter
+- [ ] Referrer-referred relationship stored in database
+- [ ] Home page displays referral count and progress toward goal
+- [ ] Home page shows shareable referral link
+- [ ] Profile page for editing nombre, teléfono, password
+- [ ] Profile page for setting/updating referral goal
+- [ ] Referidos page with table (Nombre, Cédula, Teléfono, Fecha de registro)
+- [ ] Navigation links from home to Perfil and Referidos pages
 
 ### Out of Scope
 
@@ -59,12 +79,12 @@ Users can securely register and authenticate to access the portal. If authentica
 - Email verification — can add later if needed
 - Password reset via email — can add later
 - 2FA/MFA — defer to future version
-- User profile editing — current scope is auth flow
 - Admin dashboard customization — Django admin is sufficient
 - PostgreSQL — SQLite sufficient for small scale, defer to production setup
 - Cloud deployment configuration — handle after local development complete
 - Custom CSS/design system — using Bootstrap 5 for simplicity
 - Local Bootstrap files — CDN is acceptable for now
+- Referral rewards/incentives — goal is tracking only, no rewards system
 
 ## Context
 
@@ -80,9 +100,10 @@ Users can securely register and authenticate to access the portal. If authentica
 - CSRF protection on all forms
 
 **UI context:**
-- Current pages functional but minimal styling
-- Spanish language labels already in place
-- 3 pages need styling: login, register, home
+- Bootstrap 5 styling complete on all pages
+- Spanish language labels throughout
+- 4 templates: base.html, login.html, register.html, home.html
+- Real-time form validation with input filtering
 
 ## Constraints
 
@@ -92,7 +113,7 @@ Users can securely register and authenticate to access the portal. If authentica
 - **Cédula format**: Colombian cédula de ciudadanía (6-10 digits)
 - **Existing code**: Must work with current `___/` project structure
 - **Cost**: Minimize infrastructure costs
-- **Functionality**: Keep existing auth functionality intact — purely visual improvements
+- **Existing functionality**: Keep existing auth functionality intact
 
 ## Key Decisions
 
@@ -112,4 +133,4 @@ Users can securely register and authenticate to access the portal. If authentica
 | Server-side validation mirrors client-side | Security backup for form validation | ✓ Good |
 
 ---
-*Last updated: 2026-01-19 after v1.1 milestone completion*
+*Last updated: 2026-01-19 after starting v1.2 milestone*
