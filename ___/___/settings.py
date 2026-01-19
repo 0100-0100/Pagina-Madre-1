@@ -56,7 +56,7 @@ ROOT_URLCONF = '___.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -126,3 +126,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Authentication URLs
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/admin/'  # Temporary, will change to '/home/' in Phase 3
+LOGOUT_REDIRECT_URL = '/login/'
+
+# Session configuration
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Let views control via set_expiry()
+SESSION_SAVE_EVERY_REQUEST = False  # Performance
+SESSION_COOKIE_HTTPONLY = True  # Security - prevent JavaScript access
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection

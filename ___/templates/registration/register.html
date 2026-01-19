@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Pagina Madre</title>
+</head>
+<body>
+    <h1>Create Account</h1>
+
+    {% if form.errors %}
+        <div style="color: red;">
+            <p>Please correct the errors below:</p>
+            {{ form.errors }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Register</button>
+    </form>
+
+    <p>
+        Already have an account? <a href="{% url 'login' %}">Login here</a>
+    </p>
+</body>
+</html>
