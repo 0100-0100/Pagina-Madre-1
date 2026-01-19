@@ -38,7 +38,7 @@
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-6 col-md-8 col-12">
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -48,33 +48,100 @@
                 {% endfor %}
             {% endif %}
 
+            <!-- Welcome Message -->
+            <h4 class="text-center mb-4">
+                Hola, {{ user.nombre_completo|default:user.username }}
+            </h4>
+
+            <!-- Stats Card -->
+            <div class="card shadow mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 fw-bold text-primary mb-1">{{ referral_count }}</div>
+                    <p class="text-muted mb-3">referidos</p>
+
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ progress_percent }}%;"
+                             aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <p class="text-muted mb-0">{{ referral_count }} de {{ referral_goal }} referidos</p>
+
+                    {% if referral_count == 0 %}
+                    <p class="text-primary mt-2 mb-0">
+                        <i class="bi bi-share"></i> Comparte tu enlace!
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Share Card -->
             <div class="card shadow">
                 <div class="card-body p-4">
-                    <h2 class="card-title mb-4">
-                        ¡Bienvenido, {{ user.nombre_completo|default:user.username }}!
-                    </h2>
-                    <p class="card-text text-muted">
-                        Has iniciado sesión correctamente en Pagina Madre.
-                    </p>
-                    <hr>
-                    <h5 class="mt-4 mb-3">Tu información</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="bg-light p-3 rounded">
-                                <small class="text-muted d-block">Cédula</small>
-                                <strong>{{ user.cedula }}</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="bg-light p-3 rounded">
-                                <small class="text-muted d-block">Teléfono</small>
-                                <strong>{{ user.phone|default:"No registrado" }}</strong>
-                            </div>
-                        </div>
+                    <input type="hidden" id="referralUrl" value="{{ referral_url }}">
+                    <div class="d-grid">
+                        <button type="button" id="copyBtn" class="btn btn-primary btn-lg">
+                            <i class="bi bi-clipboard"></i> Copiar Link de Referido
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="copyToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="bi bi-check-circle text-success me-2"></i>
+            <strong class="me-auto">Exito</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Enlace copiado al portapapeles
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    const copyBtn = document.getElementById('copyBtn');
+    const referralUrl = document.getElementById('referralUrl');
+    const toastEl = document.getElementById('copyToast');
+
+    if (copyBtn && referralUrl && toastEl) {
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+
+        copyBtn.addEventListener('click', async function() {
+            try {
+                await navigator.clipboard.writeText(referralUrl.value);
+
+                // Update button temporarily
+                const originalHTML = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+                copyBtn.classList.remove('btn-primary');
+                copyBtn.classList.add('btn-success');
+
+                // Show toast
+                toast.show();
+
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.classList.add('btn-primary');
+                }, 2000);
+
+            } catch (err) {
+                console.error('Copy failed:', err);
+                alert('No se pudo copiar. Tu enlace es: ' + referralUrl.value);
+            }
+        });
+    }
+})();
+</script>
 {% endblock %}
