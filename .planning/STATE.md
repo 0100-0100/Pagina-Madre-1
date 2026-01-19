@@ -10,16 +10,16 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 2 of 3 (Authentication System)
-Plan: 2 of 3
-Status: In progress
-Last activity: 2026-01-19 — Completed 02-02-PLAN.md
+Plan: 3 of 3
+Status: Phase complete
+Last activity: 2026-01-19 — Completed 02-03-PLAN.md
 
-Progress: ████░░░░░░ 40%
+Progress: ████████░░ 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 3min
 
 **By Phase:**
@@ -27,7 +27,7 @@ Progress: ████░░░░░░ 40%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 1/3 | 1min | 1min |
-| 02-authentication-system | 2/3 | 10min | 5min |
+| 02-authentication-system | 3/3 | 11min | 4min |
 
 ## Accumulated Context
 
@@ -46,6 +46,10 @@ Progress: ████░░░░░░ 40%
 | 02 | 02 | Form validation delegates to model validators | DRY principle - avoid duplicate validation logic, single source of truth |
 | 02 | 02 | Immediate login after registration | Improved UX - reduced friction, user doesn't need separate login step |
 | 02 | 02 | Session security with HTTPONLY and SAMESITE | CSRF protection - prevents JavaScript access, restricts cross-site requests |
+| 02 | 03 | Custom middleware over third-party package | Zero dependencies, ~30 lines of code, full control over exemptions |
+| 02 | 03 | LoginRequired after AuthenticationMiddleware | LoginRequired needs request.user from AuthenticationMiddleware to check authentication |
+| 02 | 03 | Use startswith() for URL exemptions | Covers sub-paths automatically (e.g., /admin/ matches /admin/login/) without enumerating every path |
+| 02 | 03 | Exempt /static/ from authentication | Login and register pages need CSS/JS files to render correctly |
 
 ### Pending Todos
 
@@ -57,6 +61,6 @@ Progress: ████░░░░░░ 40%
 
 ## Session Continuity
 
-Last session: 2026-01-19T14:29:26Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-01-19T14:32:18Z
+Stopped at: Completed 02-03-PLAN.md (Phase 2 complete)
 Resume file: None
