@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from .forms import CustomUserCreationForm
@@ -20,6 +21,12 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+
+@login_required
+def home(request):
+    """Home page view"""
+    return render(request, 'home.html', {'user': request.user})
 
 
 class CustomLoginView(LoginView):
