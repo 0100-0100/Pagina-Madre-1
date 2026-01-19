@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 7 - Referral Model & Registration
-Plan: Not started
-Status: Roadmap created, ready for phase planning
-Last activity: 2026-01-19 - Roadmap created for v1.2
+Plan: 01 complete
+Status: Plan 07-01 complete, continue with phase planning
+Last activity: 2026-01-19 - Completed 07-01-PLAN.md
 
-Progress: [----------] 0% (0/4 phases complete)
+Progress: [##--------] 25% (1/4 plans in phase 7)
 
 ## Current Milestone: v1.2 Referrals
 
@@ -23,12 +23,12 @@ Progress: [----------] 0% (0/4 phases complete)
 **Phases:**
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | Pending |
+| 7 | Referral Model & Registration | 7 | In Progress (1 plan done) |
 | 8 | Home Page Referral UI | 4 | Pending |
 | 9 | Profile Page | 4 | Pending |
 | 10 | Referidos Page | 2 | Pending |
 
-**Next:** Plan Phase 7 with `/gsd:plan-phase 7`
+**Next:** Continue Phase 7 planning or execute remaining plans
 
 ## Milestones Shipped
 
@@ -47,6 +47,8 @@ See: .planning/MILESTONES.md for full history
 - Bootstrap 5.3.8 via jsDelivr CDN with SRI
 - Real-time validation with 1.5s debounce
 - Input filtering for form fields
+- SeparateDatabaseAndState for SQLite unique constraint migrations
+- Three-step migration for unique fields: add nullable, populate, add constraint
 
 ### v1.2 Technical Notes
 
@@ -55,6 +57,7 @@ See: .planning/MILESTONES.md for full history
 - Django's built-in PasswordChangeView for password changes
 - Bootstrap progress bar for goal display
 - Navbar extraction to `includes/navbar.html` for DRY
+- Callable default pattern: `default=generate_referral_code` (no parentheses)
 
 ### Pending Todos
 
@@ -67,10 +70,10 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Roadmap created for v1.2
-Resume file: .planning/ROADMAP.md
-Next: `/gsd:plan-phase 7` to plan Referral Model & Registration
+Stopped at: Completed 07-01-PLAN.md
+Resume file: .planning/phases/07-referral-model-registration/07-01-SUMMARY.md
+Next: Continue with next plan in Phase 7 or plan remaining requirements
 
 ## To Resume Development
 
-Run `/gsd:plan-phase 7` to create the execution plan for Phase 7.
+Phase 7 Plan 01 complete. CustomUser model now has referral fields. Continue with next plan for registration form integration with referred_by.
