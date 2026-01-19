@@ -20,8 +20,8 @@ Add referral tracking system to the authentication portal. Users get unique refe
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Add referral fields to CustomUser model with migrations
-- [ ] 07-02-PLAN.md — Modify registration view to capture referral codes
+- [x] 07-01-PLAN.md — Add referral fields to CustomUser model with migrations
+- [x] 07-02-PLAN.md — Modify registration view to capture referral codes
 
 **Requirements:**
 - REF-01: CustomUser has unique 8-char alphanumeric referral_code field (auto-generated)
@@ -100,7 +100,7 @@ Plans:
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 7 | Referral Model & Registration | 7 | Planned |
+| 7 | Referral Model & Registration | 7 | ✓ Complete |
 | 8 | Home Page Referral UI | 4 | Pending |
 | 9 | Profile Page | 4 | Pending |
 | 10 | Referidos Page | 2 | Pending |
