@@ -96,6 +96,11 @@ Plans:
 
 **Dependencies:** Phase 7 (referred_by relationship), Phase 8 (navigation link exists)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 10-01-PLAN.md — Referidos page with table and empty state
+
 **Requirements:**
 - REFR-01: Referidos page displays table with columns: Nombre, Cedula, Telefono, Fecha de registro
 - REFR-02: Empty state shows message when user has no referrals
@@ -113,7 +118,7 @@ Plans:
 | 7 | Referral Model & Registration | 7 | ✓ Complete |
 | 8 | Home Page Referral UI | 4 | ✓ Complete |
 | 9 | Profile Page | 4 | ✓ Complete |
-| 10 | Referidos Page | 2 | Pending |
+| 10 | Referidos Page | 2 | Planned |
 
 **Total:** 17 requirements across 4 phases
 
