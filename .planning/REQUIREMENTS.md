@@ -99,9 +99,9 @@ Apply Bootstrap 5 styling to all pages for a professional, responsive look witho
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| R1 | Phase 4 | Pending |
-| R2 | Phase 4 | Pending |
-| R3 | Phase 4 | Pending |
+| R1 | Phase 4 | Complete |
+| R2 | Phase 4 | Complete |
+| R3 | Phase 4 | Complete |
 | R4 | Phase 5 | Pending |
 | R5 | Phase 5 | Pending |
 | R6 | Phase 5 | Pending |
