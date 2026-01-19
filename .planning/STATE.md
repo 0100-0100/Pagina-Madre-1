@@ -10,16 +10,16 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 3 of 3 (Protected Portal)
-Plan: Ready to plan
-Status: Phase 2 complete, ready for Phase 3
-Last activity: 2026-01-19 — Phase 2 verified and complete
+Plan: 1 of 1
+Status: Phase 3 complete
+Last activity: 2026-01-19 — Completed 03-01-PLAN.md
 
-Progress: ██████░░░░ 66%
+Progress: ██████████ 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 3min
 
 **By Phase:**
@@ -28,6 +28,7 @@ Progress: ██████░░░░ 66%
 |-------|-------|-------|----------|
 | 01-foundation | 1/3 | 1min | 1min |
 | 02-authentication-system | 3/3 | 11min | 4min |
+| 03-protected-portal | 1/1 | 1min | 1min |
 
 ## Accumulated Context
 
@@ -50,6 +51,9 @@ Progress: ██████░░░░ 66%
 | 02 | 03 | LoginRequired after AuthenticationMiddleware | LoginRequired needs request.user from AuthenticationMiddleware to check authentication |
 | 02 | 03 | Use startswith() for URL exemptions | Covers sub-paths automatically (e.g., /admin/ matches /admin/login/) without enumerating every path |
 | 02 | 03 | Exempt /static/ from authentication | Login and register pages need CSS/JS files to render correctly |
+| 03 | 01 | Use nombre_completo with fallback to username (cedula) for user display | Users may not fill in nombre_completo field, cedula provides guaranteed identifier |
+| 03 | 01 | Logout via POST form for CSRF security | Django LogoutView requires POST method to prevent CSRF attacks |
+| 03 | 01 | Root URL '/' as home page, not '/home/' | Simpler path structure, makes home page the default landing |
 
 ### Pending Todos
 
@@ -61,6 +65,6 @@ Progress: ██████░░░░ 66%
 
 ## Session Continuity
 
-Last session: 2026-01-19T14:32:18Z
-Stopped at: Completed 02-03-PLAN.md (Phase 2 complete)
+Last session: 2026-01-19T16:32:40Z
+Stopped at: Completed 03-01-PLAN.md (Phase 3 complete)
 Resume file: None
