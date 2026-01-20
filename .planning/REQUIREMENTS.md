@@ -26,12 +26,12 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ### Data Model
 
-- [ ] **DATA-01**: CedulaInfo model created with OneToOne link to CustomUser
-- [ ] **DATA-02**: Status field with choices: PENDING, FOUND, NOT_FOUND, CANCELLED, ERROR
-- [ ] **DATA-03**: Voting location fields: departamento, municipio, puesto, direccion, mesa
-- [ ] **DATA-04**: Cancelled fields: novedad, resolucion, fecha_novedad
-- [ ] **DATA-05**: Metadata fields: fetched_at, error_message, raw_response
-- [ ] **DATA-06**: CedulaInfo registered in Django admin (read-only display)
+- [x] **DATA-01**: CedulaInfo model created with OneToOne link to CustomUser — v1.3 Phase 12
+- [x] **DATA-02**: Status field with 9 choices: PENDING, PROCESSING, ACTIVE, NOT_FOUND, CANCELLED_DECEASED, CANCELLED_OTHER, ERROR, TIMEOUT, BLOCKED — v1.3 Phase 12
+- [x] **DATA-03**: Voting location fields: departamento, municipio, puesto, direccion, mesa — v1.3 Phase 12
+- [x] **DATA-04**: Cancelled fields: novedad, resolucion, fecha_novedad — v1.3 Phase 12
+- [x] **DATA-05**: Metadata fields: fetched_at, error_message, raw_response — v1.3 Phase 12
+- [x] **DATA-06**: CedulaInfo registered in Django admin (read-only display) — v1.3 Phase 12
 
 ### Triggers
 
@@ -41,9 +41,9 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ### RBAC (Role-Based Access Control)
 
-- [ ] **RBAC-01**: Role field added to CustomUser with choices: USER, LEADER
-- [ ] **RBAC-02**: Default role is USER for new registrations
-- [ ] **RBAC-03**: Only Django superadmin can change user roles (via admin)
+- [x] **RBAC-01**: Role field added to CustomUser with choices: USER, LEADER — v1.3 Phase 12
+- [x] **RBAC-02**: Default role is USER for new registrations — v1.3 Phase 12
+- [x] **RBAC-03**: Only Django superadmin can change user roles (via admin) — v1.3 Phase 12
 - [ ] **RBAC-04**: Leader can view census data for users they referred
 - [ ] **RBAC-05**: Leader sees manual refresh button for individual referred users
 - [ ] **RBAC-06**: Leader has bulk refresh button for all their referred users
@@ -85,15 +85,15 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 | INFRA-02 | Phase 11 | Complete |
 | INFRA-03 | Phase 11 | Complete |
 | INFRA-04 | Phase 11 | Complete |
-| DATA-01 | Phase 12 | Pending |
-| DATA-02 | Phase 12 | Pending |
-| DATA-03 | Phase 12 | Pending |
-| DATA-04 | Phase 12 | Pending |
-| DATA-05 | Phase 12 | Pending |
-| DATA-06 | Phase 12 | Pending |
-| RBAC-01 | Phase 12 | Pending |
-| RBAC-02 | Phase 12 | Pending |
-| RBAC-03 | Phase 12 | Pending |
+| DATA-01 | Phase 12 | Complete |
+| DATA-02 | Phase 12 | Complete |
+| DATA-03 | Phase 12 | Complete |
+| DATA-04 | Phase 12 | Complete |
+| DATA-05 | Phase 12 | Complete |
+| DATA-06 | Phase 12 | Complete |
+| RBAC-01 | Phase 12 | Complete |
+| RBAC-02 | Phase 12 | Complete |
+| RBAC-03 | Phase 12 | Complete |
 | SCRP-01 | Phase 13 | Pending |
 | SCRP-02 | Phase 13 | Pending |
 | SCRP-03 | Phase 13 | Pending |
@@ -121,4 +121,4 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 after roadmap creation*
+*Last updated: 2026-01-20 after Phase 12 completion*
