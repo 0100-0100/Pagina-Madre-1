@@ -1,397 +1,366 @@
-# Stack Research: v1.2 Referrals
+# Stack Research: v1.3 Async Background Jobs
 
-**Project:** Django 4.2 Authentication Portal - Referral Tracking System
+**Project:** Pagina-Madre (Django Auth Portal)
 **Researched:** 2026-01-19
-**Confidence:** HIGH
+**Overall confidence:** HIGH
 
-## Recommended Approach
+## Executive Summary
 
-**Use a self-referential ForeignKey on the existing CustomUser model** with a separate referral code field. No external packages needed.
+For adding async background jobs and Playwright web scraping to the existing Django 4.2 + SQLite stack, the recommended additions are **Django-Q2** (v1.9.0) with ORM broker and **Playwright** (v1.57.0) with **playwright-stealth** (v2.0.1). This combination provides:
 
-### Why This Approach
+1. SQLite-compatible task queue (no Redis required)
+2. Headless browser automation for JavaScript-rendered pages
+3. Basic bot evasion for Registraduria's F5 protection
+4. Clean integration with existing Django architecture
 
-| Criterion | Assessment | Rationale |
-|-----------|------------|-----------|
-| **Simplicity** | Excellent | 2-3 new fields on existing model, no new dependencies |
-| **Data Integrity** | Strong | Django ForeignKey enforces referential integrity |
-| **Query Performance** | Good | Single join to get referrer/referrals, `select_related` for optimization |
-| **Migration** | Clean | Adds nullable fields, no data migration needed |
-| **Maintenance** | Low | No external packages to update, standard Django patterns |
+**Critical insight:** Django-Q2 uses multiprocessing (separate worker processes), which avoids the "event loop already running" issue that plagues other async integrations. Each worker process can safely initialize its own Playwright instance.
 
-**Verdict:** For simple referrer-referred tracking without rewards/MLM complexity, self-referential FK is the optimal choice.
+---
 
-## Implementation Details
+## Recommended Stack Additions
 
-### Model Changes to CustomUser
+### Core Packages
 
-Add these fields to the existing `CustomUser` model in `accounts/models.py`:
+| Package | Version | Purpose | Why This |
+|---------|---------|---------|----------|
+| `django-q2` | 1.9.0 | Background task queue | Only Django-native queue that works with SQLite via ORM broker. Actively maintained fork of Django-Q. Multiprocessing architecture. |
+| `playwright` | 1.57.0 | Headless browser automation | Official Microsoft library. Handles JavaScript-rendered pages. Required for scraping Registraduria census. |
+| `playwright-stealth` | 2.0.1 | Basic bot evasion | Patches Playwright to hide automation signals. Helps with F5 bot protection. |
 
-```python
-from django.utils.crypto import get_random_string
+### Automatic Dependencies (installed with above)
 
-class CustomUser(AbstractUser):
-    # ... existing fields ...
+| Package | Version | Installed By | Purpose |
+|---------|---------|--------------|---------|
+| `django-picklefield` | 3.4.0 | django-q2 | Serializes task arguments to database |
 
-    # Referral tracking
-    referral_code = models.CharField(
-        max_length=8,
-        unique=True,
-        blank=True,
-        help_text='Unique referral code for this user'
-    )
-    referred_by = models.ForeignKey(
-        'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='referrals',
-        help_text='User who referred this user'
-    )
-    referral_goal = models.PositiveIntegerField(
-        default=10,
-        help_text='Target number of referrals'
-    )
+### Browser Binary (required, not a pip package)
 
-    def save(self, *args, **kwargs):
-        if not self.referral_code:
-            self.referral_code = self._generate_unique_referral_code()
-        super().save(*args, **kwargs)
-
-    def _generate_unique_referral_code(self):
-        """Generate a unique 8-character alphanumeric code"""
-        while True:
-            code = get_random_string(length=8, allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-            if not CustomUser.objects.filter(referral_code=code).exists():
-                return code
-
-    @property
-    def referral_count(self):
-        return self.referrals.count()
-
-    @property
-    def referral_progress(self):
-        if self.referral_goal == 0:
-            return 100
-        return min(100, int((self.referral_count / self.referral_goal) * 100))
+After installing playwright, run:
+```bash
+playwright install chromium
 ```
 
-### Key Design Decisions
+This downloads the Chromium browser binary (~150MB). Only Chromium needed - Firefox/WebKit unnecessary for this use case.
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| **ForeignKey vs separate model** | ForeignKey on User | Simple 1:1 referrer relationship, no metadata needed |
-| **on_delete** | SET_NULL | Preserve referral history if referrer account deleted |
-| **related_name** | `referrals` | `user.referrals.all()` returns all users they referred |
-| **Code length** | 8 characters | 2.8 trillion combinations, human-memorable, URL-safe |
-| **Code charset** | Uppercase + digits (no 0,O,1,I,L) | Avoids ambiguous characters for readability |
-| **Code generation timing** | On save() | Auto-generates for new users, backfill existing |
+---
 
-### Referral Code Strategy
-
-**Use `django.utils.crypto.get_random_string`** - Django's built-in secure random string generator.
-
-```python
-from django.utils.crypto import get_random_string
-
-# 8-char alphanumeric (no ambiguous chars)
-code = get_random_string(length=8, allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-# Example output: "K7X3M9NP"
-```
-
-**Why not UUID?**
-- UUIDs are 36 characters (`48a6ec8b-4929-426e-a1c3-9381b2e603d3`)
-- Hard to type, share verbally, or remember
-- 8-char code is sufficient for <1M users
-
-**Why not sequential IDs?**
-- Exposes user count (security concern)
-- Allows enumeration attacks
-- Looks unprofessional in URLs
-
-### URL Parameter Handling
-
-**Capture referral code via query parameter** in registration URL.
-
-**Referral link format:**
-```
-https://yoursite.com/register/?ref=K7X3M9NP
-```
-
-**Registration view modification:**
-
-```python
-def register(request):
-    referrer = None
-    ref_code = request.GET.get('ref') or request.POST.get('ref_code')
-
-    if ref_code:
-        try:
-            referrer = CustomUser.objects.get(referral_code=ref_code.upper())
-        except CustomUser.DoesNotExist:
-            pass  # Invalid code, continue without referrer
-
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.referred_by = referrer
-            user.save()
-            login(request, user)
-            return redirect('home')
-    else:
-        form = CustomUserCreationForm()
-
-    return render(request, 'registration/register.html', {
-        'form': form,
-        'referrer': referrer,
-        'ref_code': ref_code,
-    })
-```
-
-**Template (pass ref_code through form):**
-
-```html
-<form method="post">
-    {% csrf_token %}
-    {% if ref_code %}
-    <input type="hidden" name="ref_code" value="{{ ref_code }}">
-    {% endif %}
-    {{ form.as_p }}
-    <button type="submit">Registrarse</button>
-</form>
-```
-
-### Querying Referrals
-
-```python
-# Get all users referred by current user
-user.referrals.all()
-
-# Get referral count
-user.referrals.count()
-
-# Get referrer of current user
-user.referred_by
-
-# Optimized query with referrer info (avoids N+1)
-User.objects.select_related('referred_by').filter(...)
-
-# Optimized query with referrals (for listing)
-user = User.objects.prefetch_related('referrals').get(pk=user_id)
-```
-
-## Packages
-
-### Recommendation: No External Packages
-
-For this project's requirements (simple tracking, no rewards/MLM), external packages add complexity without benefit.
-
-### Packages Evaluated and Rejected
-
-| Package | Last Updated | Status | Why Not Use |
-|---------|--------------|--------|-------------|
-| **django-reflinks** | Nov 2023 | ARCHIVED | Repository archived, no longer maintained |
-| **django-simple-referrals** | May 2018 | ABANDONED | Last release 6+ years ago, Django 2.0 only |
-| **pinax-referrals** | June 2023 | Active but heavy | Complex (campaigns, responses, rewards), overkill for simple tracking |
-
-**Key insight:** The referral package ecosystem is fragmented with many abandoned projects. Simple referral tracking is straightforward enough to implement with standard Django patterns.
-
-### If Multi-Level Marketing Features Needed Later
-
-**Only then consider:** `pinax-referrals` (4.3.0) - supports campaign-based referrals, response tracking, and multi-level structures.
+## Installation Commands
 
 ```bash
-# NOT RECOMMENDED for v1.2, but future reference:
-pip install pinax-referrals==4.3.0
+# Activate virtual environment first
+source .venv/bin/activate
+
+# Install Python packages
+pip install django-q2==1.9.0 playwright==1.57.0 playwright-stealth==2.0.1
+
+# Install Chromium browser binary
+playwright install chromium
+
+# Update requirements.txt
+pip freeze > requirements.txt
 ```
 
-## Migration Strategy
+### Updated requirements.txt
 
-### Migration File
+```
+Django>=4.2,<5.0
+python-decouple>=3.8
+django-q2==1.9.0
+playwright==1.57.0
+playwright-stealth==2.0.1
+```
+
+---
+
+## Django-Q2 Configuration
+
+### SQLite-Specific Setup (ORM Broker)
+
+Add to `settings.py`:
 
 ```python
-# accounts/migrations/XXXX_add_referral_fields.py
-
-from django.db import migrations, models
-import django.db.models.deletion
-
-class Migration(migrations.Migration):
-    dependencies = [
-        ('accounts', '0001_initial'),  # Adjust to last migration
-    ]
-
-    operations = [
-        migrations.AddField(
-            model_name='customuser',
-            name='referral_code',
-            field=models.CharField(blank=True, max_length=8, unique=True, help_text='Unique referral code for this user'),
-        ),
-        migrations.AddField(
-            model_name='customuser',
-            name='referred_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referrals', to='accounts.customuser', help_text='User who referred this user'),
-        ),
-        migrations.AddField(
-            model_name='customuser',
-            name='referral_goal',
-            field=models.PositiveIntegerField(default=10, help_text='Target number of referrals'),
-        ),
-    ]
+# Django-Q2 Configuration
+Q_CLUSTER = {
+    'name': 'PaginaMadre',
+    'workers': 2,              # Low for SQLite (avoid lock contention)
+    'timeout': 120,            # 2 minutes per task (Playwright can be slow)
+    'retry': 180,              # Retry after 3 minutes if not acknowledged
+    'queue_limit': 10,         # Small queue for SQLite
+    'bulk': 1,                 # Process one at a time (SQLite safety)
+    'orm': 'default',          # Use Django's default database
+    'poll': 1.0,               # Check queue every second
+    'save_limit': 100,         # Keep last 100 completed tasks
+    'ack_failures': True,      # Acknowledge failed tasks (prevent retry loops)
+    'max_attempts': 3,         # Retry failed tasks up to 3 times
+    'catch_up': False,         # Don't run missed schedules (avoid backlog)
+}
 ```
 
-### Backfilling Existing Users
-
-After migration, generate codes for existing users:
+### Add to INSTALLED_APPS
 
 ```python
-# Run in Django shell or management command
-from accounts.models import CustomUser
-from django.utils.crypto import get_random_string
-
-def generate_unique_code():
-    while True:
-        code = get_random_string(length=8, allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-        if not CustomUser.objects.filter(referral_code=code).exists():
-            return code
-
-for user in CustomUser.objects.filter(referral_code=''):
-    user.referral_code = generate_unique_code()
-    user.save(update_fields=['referral_code'])
+INSTALLED_APPS = [
+    # ... existing apps ...
+    'django_q',
+]
 ```
 
-## Rejected Alternatives
+### Run Migrations
 
-### Alternative 1: Separate Referral Model
+```bash
+python manage.py migrate django_q
+```
 
-**What:** Create a `Referral` model linking two users
+This creates these tables:
+- `django_q_ormq` - Task queue
+- `django_q_task` - Task results
+- `django_q_schedule` - Scheduled tasks
+
+### Running the Worker Cluster
+
+```bash
+# Development (foreground, with output)
+python manage.py qcluster
+
+# Production (use supervisor, systemd, or similar)
+```
+
+**Important:** The qcluster command must be running for tasks to process. In development, run it in a separate terminal.
+
+---
+
+## Playwright Setup
+
+### Sync API Usage Pattern (Django-Q2 Compatible)
+
+Since Django-Q2 workers are separate processes, use the sync API directly:
 
 ```python
-class Referral(models.Model):
-    referrer = models.ForeignKey(User, related_name='referrals_made')
-    referred = models.ForeignKey(User, related_name='was_referred')
-    created_at = models.DateTimeField(auto_now_add=True)
+# scraper.py - Example task
+from playwright.sync_api import sync_playwright
+from playwright_stealth import Stealth
+
+def scrape_cedula(cedula: str) -> dict:
+    """
+    Scrape Registraduria census for cedula.
+    Called as Django-Q2 task in separate worker process.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+
+        # Apply stealth to avoid bot detection
+        stealth = Stealth()
+        context = browser.new_context()
+        stealth.apply_stealth_sync(context)
+
+        page = context.new_page()
+
+        try:
+            # Navigate and scrape
+            page.goto("https://wsp.registraduria.gov.co/censo/consultar/")
+            # ... form interaction and data extraction ...
+
+            return {
+                'status': 'success',
+                'data': {...}
+            }
+        except Exception as e:
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
+        finally:
+            browser.close()
 ```
 
-**Why Not:**
-- Adds query complexity (join through intermediate table)
-- Only needed if storing metadata (reward status, campaign, etc.)
-- Project requirements don't include referral metadata
-- Self-referential FK is simpler for 1:1 relationships
-
-**When to use:** Multi-level marketing, referral rewards, campaign tracking.
-
-### Alternative 2: UUID for Referral Codes
-
-**What:** Use `uuid.uuid4()` as referral code
+### Queueing Tasks
 
 ```python
-referral_code = models.UUIDField(default=uuid.uuid4, unique=True)
+# views.py or signals.py
+from django_q.tasks import async_task
+
+def on_user_registration(user):
+    """Queue cedula validation after registration."""
+    async_task(
+        'apps.scraper.scrape_cedula',  # Task function path
+        user.cedula,                    # Positional argument
+        hook='apps.scraper.save_result',  # Callback when done
+        timeout=120,                    # 2 minute timeout
+    )
 ```
 
-**Why Not:**
-- 36-character strings (`48a6ec8b-4929-426e-a1c3-9381b2e603d3`)
-- Poor UX for sharing verbally or typing
-- Overkill for <1M user scale
-- Harder to include in SMS/social media sharing
+### Stealth Configuration
 
-**When to use:** Security-critical applications, API integrations, distributed systems.
+```python
+from playwright_stealth import Stealth, ALL_EVASIONS_DISABLED_KWARGS
 
-### Alternative 3: URL Path-Based Referral Codes
+# Default stealth (all evasions enabled)
+stealth = Stealth()
 
-**What:** Use URL path instead of query parameter
+# Or customize which evasions to use
+stealth = Stealth(
+    navigator_webdriver=True,      # Hide webdriver flag
+    navigator_plugins=True,        # Fake plugins
+    navigator_languages=True,      # Realistic languages
+    webgl_vendor=True,             # Fake WebGL vendor
+    # ... etc
+)
+
+# Apply to browser context
+stealth.apply_stealth_sync(context)
+```
+
+---
+
+## Integration Notes
+
+### How These Integrate with Existing Django App
+
+1. **Database**: Django-Q2 uses the same SQLite database via ORM broker. No additional database needed.
+
+2. **Settings**: Only `Q_CLUSTER` config and `django_q` in INSTALLED_APPS needed.
+
+3. **Migrations**: Single migrate command adds Django-Q2 tables.
+
+4. **Admin**: Django-Q2 automatically adds task management to Django Admin (Queued Tasks, Successful Tasks, Failed Tasks, Scheduled Tasks).
+
+5. **Signals**: Can trigger tasks on model save via Django signals (e.g., post_save on User model).
+
+6. **Views**: Can trigger tasks from views (e.g., manual refresh button).
+
+### Architecture Pattern
 
 ```
-https://yoursite.com/r/K7X3M9NP/
+[User Registration]
+    -> [Django View]
+    -> [async_task()] queues to ORM
+    -> [qcluster worker] picks up task
+    -> [Playwright scrapes] Registraduria
+    -> [Hook saves result] to CedulaInfo model
 ```
 
-**Why Not:**
-- Requires additional URL routing
-- Complicates registration flow (redirect needed)
-- Query parameter (`?ref=X`) works seamlessly
-- Less flexible for adding other parameters
+### SQLite Considerations
 
-**When to use:** Marketing campaigns where clean URLs matter.
+- **Workers**: Keep at 2 or fewer to avoid SQLite lock contention
+- **Bulk**: Set to 1 (process one task at a time)
+- **Poll**: 1.0 second is fine (not high traffic)
+- **WAL mode**: Consider enabling for better concurrency:
 
-### Alternative 4: Cookie-Based Referral Tracking
+```python
+# settings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,  # Wait 20 seconds on lock
+        },
+    }
+}
+```
 
-**What:** Store referral code in cookie, check on registration
+### Bot Protection Strategy
 
-**Why Not:**
-- Adds complexity (middleware, cookie management)
-- Privacy concerns (GDPR)
-- Not needed for simple link sharing
-- Cookies can be cleared before registration
+Registraduria uses F5 bot protection. playwright-stealth provides basic evasion but may not bypass all protections. Strategy:
 
-**When to use:** Delayed conversion tracking, affiliate marketing.
+1. **Start with stealth**: May work for simple bot detection
+2. **Add delays**: Human-like timing between actions
+3. **Handle failures**: Store error states, allow manual retry
+4. **Monitor**: If blocked frequently, consider Camoufox upgrade
 
-## Technology Stack Summary
+---
 
-### Required (Already in Project)
+## What NOT to Add
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Django | 4.2 LTS | Web framework |
-| Python | 3.14 | Runtime |
-| SQLite | - | Database |
+### Packages to Avoid
 
-### New Dependencies
+| Package | Why NOT |
+|---------|---------|
+| `celery` | Requires Redis or RabbitMQ. Overkill for this scale. Complex setup. |
+| `redis` / `django-redis` | SQLite-only requirement. Adding Redis adds infrastructure. |
+| `huey` | Less Django-native than Django-Q2. Less admin integration. |
+| `selenium` | Older, slower than Playwright. Worse async support. |
+| `beautifulsoup4` | Not needed - Registraduria page is JS-rendered, need real browser. |
+| `requests` | Can't execute JavaScript. Won't work for this target. |
+| `camoufox` | More complex setup. Only add if playwright-stealth fails. |
+| `nest_asyncio` | Not needed - Django-Q2 multiprocessing avoids event loop conflicts. |
+| `undetected-playwright` | Unmaintained. playwright-stealth is the maintained option. |
 
-**None.** All functionality uses Django built-ins:
+### Approaches to Avoid
 
-- `django.utils.crypto.get_random_string` - Code generation
-- `models.ForeignKey('self', ...)` - Self-referential relationship
-- `request.GET.get('ref')` - URL parameter capture
+| Approach | Why NOT |
+|----------|---------|
+| Running Playwright in Django request cycle | Blocks web server. Playwright operations take 5-30 seconds. |
+| Sharing Playwright instance across workers | Each worker needs its own instance due to multiprocessing. |
+| Using async API with sync Django | Event loop conflicts. Stick with sync_api in workers. |
+| Redis just for Django-Q2 | Unnecessary complexity. ORM broker is fine for this scale. |
+| Multiple browser types | Only Chromium needed. Firefox/WebKit add download time. |
 
-### Files to Modify
+---
 
-| File | Changes |
-|------|---------|
-| `accounts/models.py` | Add 3 fields, save() override, properties |
-| `accounts/views.py` | Capture ref parameter in register view |
-| `accounts/migrations/XXXX_*.py` | New migration for fields |
-| `templates/registration/register.html` | Hidden field for ref_code |
-| `templates/home.html` | Display referral link, count, progress |
+## Version Compatibility Matrix
 
-## Confidence Assessment
+| Component | Installed | Requires | Status |
+|-----------|-----------|----------|--------|
+| Python | 3.14 | 3.9-3.13 (Q2), 3.9+ (Playwright) | CHECK: django-picklefield 3.4.0 requires 3.10+ |
+| Django | 4.2 | 4.2-6.0 (Q2), any (Playwright) | OK |
+| SQLite | bundled | any (via Django ORM) | OK |
+| OS | macOS/Linux | macOS, Linux, Windows | OK |
 
-| Area | Confidence | Source | Notes |
-|------|------------|--------|-------|
-| Self-referential FK pattern | HIGH | Django ORM Cookbook, official docs | Standard Django pattern |
-| get_random_string | HIGH | Django source code, Python docs | Built-in, cryptographically secure |
-| Package recommendations | HIGH | PyPI, GitHub repos | Verified maintenance status |
-| URL parameter approach | HIGH | Django docs, community patterns | Standard web pattern |
-| Code length/charset | MEDIUM | Security best practices | 8 chars sufficient for scale |
+### Python 3.14 Note
+
+Django-Q2 officially supports up to Python 3.13. Python 3.14 may work but is not officially tested. Monitor for issues. Consider testing with 3.13 if problems arise.
+
+django-picklefield 3.4.0 lists Python 3.14 support explicitly.
+
+---
 
 ## Sources
 
-### Official Documentation
-- [Django Models - Self-referential relationships](https://docs.djangoproject.com/en/4.2/topics/db/models/#recursive-relationships)
-- [Django crypto module](https://docs.djangoproject.com/en/4.2/topics/signing/#module-django.utils.crypto)
-- [Python secrets module](https://docs.python.org/3/library/secrets.html)
+### Official Documentation (HIGH confidence)
+- [Django-Q2 Configuration](https://django-q2.readthedocs.io/en/master/configure.html)
+- [Django-Q2 Brokers](https://django-q2.readthedocs.io/en/master/brokers.html)
+- [Django-Q2 Tasks](https://django-q2.readthedocs.io/en/master/tasks.html)
+- [Playwright Python Installation](https://playwright.dev/python/docs/intro)
+- [Playwright Python Library API](https://playwright.dev/python/docs/library)
 
-### Community Resources
-- [Django ORM Cookbook - Self-referencing ForeignKey](https://books.agiliq.com/projects/django-orm-cookbook/en/latest/self_fk.html)
-- [Understanding Django Self-Referential Foreign Keys](https://studygyaan.com/django/understanding-django-self-referential-foreign-keys)
-- [Django Forum - Foreign key to self](https://forum.djangoproject.com/t/foreign-key-to-self/17227)
+### PyPI (HIGH confidence - version info)
+- [django-q2 1.9.0](https://pypi.org/project/django-q2/)
+- [playwright 1.57.0](https://pypi.org/project/playwright/)
+- [playwright-stealth 2.0.1](https://pypi.org/project/playwright-stealth/)
+- [django-picklefield 3.4.0](https://pypi.org/project/django-picklefield/)
 
-### Package Repositories
-- [django-reflinks GitHub (ARCHIVED)](https://github.com/HearthSim/django-reflinks)
-- [django-simple-referrals PyPI](https://pypi.org/project/django-simple-referrals/) - Last release May 2018
-- [pinax-referrals GitHub](https://github.com/pinax/pinax-referrals)
-- [Django Packages - Referrals Grid](https://djangopackages.org/grids/g/referrals/)
+### GitHub (HIGH confidence)
+- [Django-Q2 Repository](https://github.com/django-q2/django-q2)
+- [Playwright Python Issues - Multiprocessing](https://github.com/microsoft/playwright-python/issues/937)
+- [Playwright Python Issues - Celery Workers](https://github.com/microsoft/playwright-python/issues/1995)
 
-### Code Generation
-- [Django get_random_string examples](https://www.programcreek.com/python/example/68244/django.utils.crypto.get_random_string)
-- [Unique coupon code generation with Django](https://medium.com/@parker.cattell.atkins/unique-gift-coupon-code-generation-with-django-bf8f46ee3b9f)
+### Community Research (MEDIUM confidence)
+- [ZenRows - Playwright Cloudflare Bypass](https://www.zenrows.com/blog/playwright-cloudflare-bypass)
+- [BrightData - Playwright Stealth](https://brightdata.com/blog/how-tos/avoid-bot-detection-with-playwright-stealth)
+- [DEV.to - Playwright Flask Async Conflict](https://dev.to/deepak_mishra_35863517037/integrating-playwright-with-flask-resolving-the-async-conflict-2d9o)
 
-## Summary
+---
 
-**Recommended Stack:** No new packages. Use Django built-ins only.
+## Confidence Assessment
 
-**Model approach:** Self-referential ForeignKey on CustomUser with `on_delete=SET_NULL`
+| Area | Level | Reason |
+|------|-------|--------|
+| Django-Q2 version/config | HIGH | Verified via official docs and PyPI |
+| ORM broker for SQLite | HIGH | Documented feature with examples |
+| Playwright version/usage | HIGH | Verified via official docs and PyPI |
+| playwright-stealth integration | MEDIUM | Third-party package, verified on PyPI |
+| F5 bypass effectiveness | LOW | Depends on target site's specific protection |
+| Python 3.14 compatibility | MEDIUM | django-picklefield supports it, Q2 untested |
 
-**Code generation:** `django.utils.crypto.get_random_string` with 8-char alphanumeric codes
+---
 
-**URL handling:** Query parameter `?ref=CODE` captured in registration view
+## Open Questions for Phase Planning
 
-**Why:** Simple referral tracking (without rewards/MLM) is trivially implementable with standard Django patterns. External packages are either abandoned, overkill, or add unnecessary complexity for this use case.
+1. **Bot detection severity**: How aggressive is Registraduria's F5 protection? May need to upgrade to Camoufox if playwright-stealth insufficient.
+
+2. **Rate limiting**: What's the appropriate delay between scraping requests? May need to implement backoff.
+
+3. **Error handling**: What specific error states does Registraduria return? Need to map to CedulaInfo status field.
+
+4. **Browser binary deployment**: How to handle Playwright browser binary in production? May need dockerfile or install script.
