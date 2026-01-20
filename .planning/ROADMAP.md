@@ -65,11 +65,11 @@ Plans:
   3. Scraper returns cancelled status for deceased cedula
   4. Scraper returns not_found for invalid cedula
   5. Scraper handles timeout gracefully without crashing
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 13-01: Playwright installation and stealth config
-- [ ] 13-02: Scraper implementation with all response types
+- [ ] 13-01-PLAN.md — Install Playwright with Chromium, create browser singleton
+- [ ] 13-02-PLAN.md — Implement scraper with all response types and rate limiting
 
 ---
 
@@ -130,7 +130,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 11. Django-Q2 Foundation | 1/1 | Complete ✓ | 2026-01-19 |
 | 12. CedulaInfo Model + RBAC | 2/2 | Complete ✓ | 2026-01-20 |
-| 13. Playwright Scraper | 0/TBD | Not started | - |
+| 13. Playwright Scraper | 0/2 | Not started | - |
 | 14. Task Integration + Signals | 0/TBD | Not started | - |
 | 15. Profile Display + Refresh | 0/TBD | Not started | - |
 | 16. Referidos Page Updates | 0/TBD | Not started | - |
