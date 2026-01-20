@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv()) + ['192.168.0.23']
 
 
 # Application definition
@@ -39,7 +39,38 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
 ]
+
+# Django-Q2 Configuration
+# ========================
+# Current: SQLite + ORM broker (suitable for <100 users, single worker)
+#
+# UPGRADE PATH for PostgreSQL + Redis (when needed):
+# 1. Install: pip install redis
+# 2. Replace 'orm': 'default' with:
+#    'redis': {
+#        'host': 'localhost',
+#        'port': 6379,
+#        'db': 0,
+#    }
+# 3. Increase 'workers' to match CPU cores
+# 4. Remove WAL mode signal (PostgreSQL handles concurrency natively)
+# 5. Consider separate broker database for high-throughput scenarios
+
+Q_CLUSTER = {
+    'name': 'pagina-madre',
+    'workers': 1,  # CRITICAL: SQLite cannot handle concurrent writes
+    'timeout': 120,  # 2 minutes max per task (INFRA-04)
+    'retry': 180,  # Must exceed timeout - 3 minutes (INFRA-04)
+    'queue_limit': 50,
+    'save_limit': 250,
+    'orm': 'default',  # Use Django's default database as broker (INFRA-01)
+    'recycle': 100,
+    'ack_failures': True,
+    'max_attempts': 3,
+    'label': 'Django Q2',
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -139,3 +170,44 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Let views control via set_expiry()
 SESSION_SAVE_EVERY_REQUEST = False  # Performance
 SESSION_COOKIE_HTTPONLY = True  # Security - prevent JavaScript access
 SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} [{name}] {levelname} {message}',
+            'style': '{',
+            'datefmt': '%H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django-q': {  # NOTE: hyphen, not underscore!
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# SQLite WAL Mode (INFRA-02)
+# Prevents "database is locked" errors when qcluster and web server run concurrently
+from django.db.backends.signals import connection_created
+from django.dispatch import receiver
+
+
+@receiver(connection_created)
+def enable_sqlite_wal(sender, connection, **kwargs):
+    """Enable WAL mode for SQLite to prevent database locking."""
+    if connection.vendor == 'sqlite':
+        cursor = connection.cursor()
+        cursor.execute('PRAGMA journal_mode=WAL;')
+        cursor.execute('PRAGMA busy_timeout=5000;')
+        cursor.close()
