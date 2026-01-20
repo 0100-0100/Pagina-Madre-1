@@ -9,10 +9,10 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Django-Q2 task queue installed and configured with ORM broker
-- [ ] **INFRA-02**: SQLite WAL mode enabled to prevent database locking
-- [ ] **INFRA-03**: Task worker process (qcluster) runs successfully
-- [ ] **INFRA-04**: Task timeout and retry configured (timeout=120s, retry=180s)
+- [x] **INFRA-01**: Django-Q2 task queue installed and configured with ORM broker — v1.3 Phase 11
+- [x] **INFRA-02**: SQLite WAL mode enabled to prevent database locking — v1.3 Phase 11
+- [x] **INFRA-03**: Task worker process (qcluster) runs successfully — v1.3 Phase 11
+- [x] **INFRA-04**: Task timeout and retry configured (timeout=120s, retry=180s) — v1.3 Phase 11
 
 ### Scraping
 
@@ -81,10 +81,10 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 11 | Pending |
-| INFRA-02 | Phase 11 | Pending |
-| INFRA-03 | Phase 11 | Pending |
-| INFRA-04 | Phase 11 | Pending |
+| INFRA-01 | Phase 11 | Complete |
+| INFRA-02 | Phase 11 | Complete |
+| INFRA-03 | Phase 11 | Complete |
+| INFRA-04 | Phase 11 | Complete |
 | DATA-01 | Phase 12 | Pending |
 | DATA-02 | Phase 12 | Pending |
 | DATA-03 | Phase 12 | Pending |
