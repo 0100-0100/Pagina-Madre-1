@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 11 - Django-Q2 Foundation
-Plan: 01 of 01 complete
-Status: Phase 11 complete, ready for Phase 12 planning
-Last activity: 2026-01-19 — Completed 11-01-PLAN.md (Django-Q2 Foundation)
+Phase: 12 - CedulaInfo Model + RBAC
+Plan: 1 of 02 complete
+Status: In progress - 12-01 complete, 12-02 next
+Last activity: 2026-01-20 — Completed 12-01-PLAN.md (CedulaInfo Model)
 
 Progress: [##........] 1/6 phases (17%)
 
@@ -24,7 +24,7 @@ Progress: [##........] 1/6 phases (17%)
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 11 | Django-Q2 Foundation | 4 | Complete |
-| 12 | CedulaInfo Model + RBAC | 9 | Not started |
+| 12 | CedulaInfo Model + RBAC | 9 | In progress (1/2 plans) |
 | 13 | Playwright Scraper | 7 | Not started |
 | 14 | Task Integration + Signals | 3 | Not started |
 | 15 | Profile Display + Refresh | 6 | Not started |
@@ -57,6 +57,9 @@ See: .planning/MILESTONES.md for full history
 - Single worker (workers=1) for SQLite write safety
 - WAL mode via connection_created signal
 - timeout=120s, retry=180s for cedula validation tasks
+- 9 granular status choices for CedulaInfo lifecycle
+- TextField for raw_response (debug storage, not queried)
+- Spanish verbose_names for all user-facing fields
 
 ### v1.3 Research Insights
 
@@ -77,16 +80,15 @@ See: .planning/MILESTONES.md for full history
 
 ## Session Continuity
 
-Last session: 2026-01-19
-Stopped at: Completed 11-01-PLAN.md (Django-Q2 Foundation)
-Resume file: .planning/phases/11-django-q2-foundation/11-01-SUMMARY.md
-Next: `/gsd:plan-phase 12` to plan CedulaInfo Model + RBAC
+Last session: 2026-01-20
+Stopped at: Completed 12-01-PLAN.md
+Resume file: .planning/phases/12-cedulainfo-model-rbac/12-02-PLAN.md
+Next: Execute 12-02-PLAN.md (Role field + Admin configuration)
 
 ## To Resume Development
 
-Phase 11 complete. Django-Q2 task queue infrastructure ready:
-- qcluster starts with `python manage.py qcluster`
-- Tasks queued via `async_task('accounts.tasks.function_name', args)`
-- WAL mode ensures concurrent web server and qcluster
+Phase 12 in progress with 2 plans in 2 waves:
+- 12-01: CedulaInfo model with 9 status choices, voting location fields, cancelled fields, metadata - COMPLETE
+- 12-02: Role field on CustomUser (USER/LEADER), read-only CedulaInfoAdmin, role restrictions - NEXT
 
-Ready to plan Phase 12: CedulaInfo Model + RBAC
+Continue with 12-02-PLAN.md to complete Phase 12.
