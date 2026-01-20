@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 13 - Playwright Scraper (COMPLETE)
-Plan: 2 of 02 complete
-Status: Phase complete - Ready for Phase 14 (Task Integration + Signals)
-Last activity: 2026-01-20 — Completed 13-02-PLAN.md (Scraping Logic Implementation)
+Phase: 14 - Task Integration + Signals (COMPLETE)
+Plan: 1 of 01 complete
+Status: Phase complete - Ready for Phase 15 (Profile Display + Refresh)
+Last activity: 2026-01-20 — Completed 14-01-PLAN.md (Signal + Task Wiring)
 
-Progress: [######....] 3/6 phases (50%)
+Progress: [#######...] 4/6 phases (67%)
 
 ## v1.3 Milestone Overview
 
@@ -26,7 +26,7 @@ Progress: [######....] 3/6 phases (50%)
 | 11 | Django-Q2 Foundation | 4 | Complete |
 | 12 | CedulaInfo Model + RBAC | 9 | Complete (2/2 plans) |
 | 13 | Playwright Scraper | 7 | Complete (2/2 plans) |
-| 14 | Task Integration + Signals | 3 | Not started |
+| 14 | Task Integration + Signals | 3 | Complete (1/1 plan) |
 | 15 | Profile Display + Refresh | 6 | Not started |
 | 16 | Referidos Page Updates | 2 | Not started |
 
@@ -68,7 +68,12 @@ See: .planning/MILESTONES.md for full history
 - Headed browser mode when DEBUG=True for visual debugging
 - CSS selectors as module constants for easy maintenance
 - Class-level rate limiting (5s minimum between requests)
-- raw_html stored only on error states for debugging
+- 2captcha for reCAPTCHA solving (fully automated)
+- Wait for networkidle before interacting with page
+- Pattern-based response type detection (not_found, cancelled, found)
+- dispatch_uid for signal deduplication
+- schedule() with schedule_type='O' for one-time delayed retry
+- Status PROCESSING during scrape (matches model choices)
 
 ### v1.3 Research Insights
 
@@ -76,29 +81,32 @@ See: .planning/MILESTONES.md for full history
 - SQLite WAL mode required to prevent locking - IMPLEMENTED
 - Single worker only (Q_CLUSTER.workers = 1) - IMPLEMENTED
 - Playwright-stealth for F5 bypass (success not guaranteed)
-- transaction.on_commit() for signal-triggered tasks
+- transaction.on_commit() for signal-triggered tasks - IMPLEMENTED
 - Fresh browser instance per task (no sharing) - IMPLEMENTED via context isolation
 - F5 CSPM blocks headless requests - graceful failure implemented
 
 ### Pending Todos
 
-(None)
+- Future: Add semi-automated CAPTCHA fallback (leader manually solves in headed browser mode)
 
 ### Blockers/Concerns
 
-- F5 CSPM bot detection blocks scraper (graceful failure implemented, may need playwright-stealth later)
+(None - reCAPTCHA solved via 2captcha integration)
 
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 13-02-PLAN.md (Scraping Logic Implementation)
+Stopped at: Completed 14-01-PLAN.md (Signal + Task Wiring)
 Resume file: None
-Next: Execute Phase 14 (Task Integration + Signals)
+Next: Execute Phase 15 (Profile Display + Refresh)
 
 ## To Resume Development
 
-Phase 13 complete:
-- 13-01: Playwright 1.57 installed, RegistraduriaScraper class with browser singleton - COMPLETE
-- 13-02: Full scraping logic with 7 response types and 5s rate limiting - COMPLETE
+Phase 14 complete:
+- 14-01: post_save signal, validate_cedula task with 3-attempt backoff - COMPLETE
 
-Continue with Phase 14 to wire scraper into Django-Q2 background tasks with signals.
+Key files created:
+- ___/accounts/signals.py - post_save handler with transaction.on_commit
+- ___/accounts/tasks.py - validate_cedula with exponential backoff retry
+
+Continue with Phase 15 to add profile display of CedulaInfo status and manual refresh for leaders.
