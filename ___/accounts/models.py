@@ -164,6 +164,10 @@ class CedulaInfo(models.Model):
         verbose_name='Respuesta cruda',
         help_text='HTML/JSON response from Registraduria for debugging',
     )
+    retry_count = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name='Intentos',
+    )
 
     class Meta:
         verbose_name = 'Informacion de cedula'
