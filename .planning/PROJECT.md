@@ -8,6 +8,16 @@ A Django-based authentication portal for Colombian users with professional Boots
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
+## Current Milestone: v1.3 Async Background Jobs
+
+**Goal:** Validate user cédulas against Registraduría's electoral census and store voting location data via background tasks.
+
+**Target features:**
+- Django-Q2 background task queue (SQLite-compatible)
+- Playwright headless browser for JavaScript-rendered scraping
+- CedulaInfo model with status tracking (active/cancelled/not found)
+- Auto-validation on registration + manual refresh
+
 ## Current State
 
 **Shipped:** v1.2 Referrals (2026-01-19)
@@ -61,7 +71,14 @@ Users can securely register and authenticate to access the portal. If authentica
 
 ### Active
 
-(None — define next milestone with `/gsd:new-milestone`)
+**v1.3 Async Background Jobs — Cédula Validation & Data Gathering**
+
+- [ ] Background task queue system (Django-Q2)
+- [ ] Playwright-based scraper for Registraduría census lookup
+- [ ] CedulaInfo model to store voting/census data
+- [ ] Auto-trigger validation after user registration
+- [ ] Manual refresh option for census data
+- [ ] Handle all response types (active, cancelled, not found, error)
 
 ### Out of Scope
 
@@ -129,4 +146,4 @@ Users can securely register and authenticate to access the portal. If authentica
 | navigator.clipboard API | Modern clipboard access with fallback | ✓ Good |
 
 ---
-*Last updated: 2026-01-19 after completing v1.2 milestone*
+*Last updated: 2026-01-19 after starting v1.3 milestone*

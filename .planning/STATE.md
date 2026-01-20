@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Users can securely register and authenticate to access the portal.
-**Current focus:** Planning next milestone
+**Current focus:** v1.3 Async Background Jobs — Cédula Validation
 
 ## Current Position
 
-Phase: Ready for next milestone
-Plan: Not started
-Status: v1.2 complete — ready to plan v1.3
-Last activity: 2026-01-19 — Completed v1.2 Referrals milestone
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v1.3
+Last activity: 2026-01-19 — Started v1.3 milestone
 
-Progress: Milestone complete
+Progress: Milestone started
 
 ## Milestones Shipped
 
@@ -51,17 +51,16 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: v1.2 milestone complete
-Resume file: .planning/MILESTONES.md
-Next: `/gsd:new-milestone` to start v1.3
+Stopped at: Defining v1.3 requirements
+Resume file: .planning/PROJECT.md
+Next: Complete requirements definition and roadmap creation
 
 ## To Resume Development
 
-v1.2 Referrals milestone complete. Full referral system shipped:
-- Referral tracking with unique codes
-- Registration captures referral codes from URL
-- Home page shows stats and copy link button
-- Profile page for editing user info and password
-- Referidos page shows referred users
+v1.3 milestone started. Building async background jobs for cédula validation:
+- Scrape Registraduría census page via Playwright
+- Store voting location data (departamento, municipio, puesto, direccion, mesa)
+- Handle cancelled/deceased cédulas and not-found cases
+- Auto-trigger on registration + manual refresh
 
-Ready to plan next milestone with `/gsd:new-milestone`.
+Currently defining requirements.
