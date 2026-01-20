@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 12 - CedulaInfo Model + RBAC (COMPLETE)
-Plan: 2 of 02 complete
-Status: Phase complete - ready for Phase 13
-Last activity: 2026-01-20 — Completed 12-02-PLAN.md (Role field + Admin)
+Phase: 13 - Playwright Scraper (IN PROGRESS)
+Plan: 1 of 02 complete
+Status: In progress - Plan 01 complete, ready for Plan 02
+Last activity: 2026-01-20 — Completed 13-01-PLAN.md (Playwright Setup + Base Scraper)
 
-Progress: [####......] 2/6 phases (33%)
+Progress: [#####.....] 2.5/6 phases (42%)
 
 ## v1.3 Milestone Overview
 
@@ -25,7 +25,7 @@ Progress: [####......] 2/6 phases (33%)
 |-------|------|--------------|--------|
 | 11 | Django-Q2 Foundation | 4 | Complete |
 | 12 | CedulaInfo Model + RBAC | 9 | Complete (2/2 plans) |
-| 13 | Playwright Scraper | 7 | Not started |
+| 13 | Playwright Scraper | 7 | In progress (1/2 plans) |
 | 14 | Task Integration + Signals | 3 | Not started |
 | 15 | Profile Display + Refresh | 6 | Not started |
 | 16 | Referidos Page Updates | 2 | Not started |
@@ -63,6 +63,9 @@ See: .planning/MILESTONES.md for full history
 - Role enum inside CustomUser class for namespacing (CustomUser.Role.USER)
 - CedulaInfoAdmin fully read-only (data from scraping only)
 - Role field read-only for non-superusers
+- Browser singleton with lazy initialization for Playwright
+- Fresh context per scrape with cleanup in finally block
+- Headed browser mode when DEBUG=True for visual debugging
 
 ### v1.3 Research Insights
 
@@ -71,7 +74,7 @@ See: .planning/MILESTONES.md for full history
 - Single worker only (Q_CLUSTER.workers = 1) - IMPLEMENTED
 - Playwright-stealth for F5 bypass (success not guaranteed)
 - transaction.on_commit() for signal-triggered tasks
-- Fresh browser instance per task (no sharing)
+- Fresh browser instance per task (no sharing) - IMPLEMENTED via context isolation
 
 ### Pending Todos
 
@@ -84,14 +87,13 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 12-02-PLAN.md (Phase 12 complete)
-Resume file: .planning/phases/13-playwright-scraper/13-01-PLAN.md
-Next: Execute Phase 13 (Playwright Scraper)
+Stopped at: Completed 13-01-PLAN.md (Playwright Setup + Base Scraper)
+Resume file: .planning/phases/13-playwright-scraper/13-02-PLAN.md
+Next: Execute Plan 02 (Actual scraping logic for Registraduria)
 
 ## To Resume Development
 
-Phase 12 complete with both plans executed:
-- 12-01: CedulaInfo model with 9 status choices, voting location fields - COMPLETE
-- 12-02: Role field (USER/LEADER), read-only CedulaInfoAdmin, superadmin role editing - COMPLETE
+Phase 13 Plan 01 complete:
+- 13-01: Playwright 1.57 installed, RegistraduriaScraper class with browser singleton - COMPLETE
 
-Continue with Phase 13 (Playwright Scraper) to implement cedula validation scraping.
+Continue with Phase 13 Plan 02 to implement actual scraping logic for Registraduria census lookup.
