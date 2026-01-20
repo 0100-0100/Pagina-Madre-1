@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django_q import models as q_models
+from django_q import admin as q_admin
 from .models import CustomUser
 
 
@@ -31,3 +33,23 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
+
+# Django-Q2 Admin Customization
+# Unregister default Failure admin and register enhanced version
+admin.site.unregister([q_models.Failure])
+
+
+@admin.register(q_models.Failure)
+class FailureAdmin(q_admin.FailAdmin):
+    """Enhanced failed task admin with attempt count and error details."""
+    list_display = (
+        'name',
+        'func',
+        'started',
+        'stopped',
+        'time_taken',
+        'attempt_count',
+        'short_result',
+    )
+    list_filter = ('group', 'cluster', 'started')
