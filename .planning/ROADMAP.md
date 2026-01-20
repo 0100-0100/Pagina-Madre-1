@@ -32,7 +32,7 @@ Add background task processing with web scraping to validate user cedulas agains
 **Plans:** 1 plan
 
 Plans:
-- [ ] 11-01-PLAN.md - Install Django-Q2, configure SQLite WAL mode, verify task execution
+- [x] 11-01-PLAN.md — Install Django-Q2, configure SQLite WAL mode, verify task execution
 
 ---
 
@@ -46,11 +46,11 @@ Plans:
   2. New users automatically have role=USER
   3. Admin can change user role to LEADER
   4. CedulaInfo linked to user visible in admin (read-only)
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 12-01: CedulaInfo model and migrations
-- [ ] 12-02: Role field and admin configuration
+- [ ] 12-01-PLAN.md — Create CedulaInfo model with 9 status choices and all fields
+- [ ] 12-02-PLAN.md — Add role field to CustomUser and configure admin
 
 ---
 
@@ -129,7 +129,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 11. Django-Q2 Foundation | 1/1 | Complete ✓ | 2026-01-19 |
-| 12. CedulaInfo Model + RBAC | 0/TBD | Not started | - |
+| 12. CedulaInfo Model + RBAC | 0/2 | Planned | - |
 | 13. Playwright Scraper | 0/TBD | Not started | - |
 | 14. Task Integration + Signals | 0/TBD | Not started | - |
 | 15. Profile Display + Refresh | 0/TBD | Not started | - |
