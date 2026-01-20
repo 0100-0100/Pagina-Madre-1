@@ -28,6 +28,9 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv()) + ['192.168.0.23']
 
+# 2captcha API key for reCAPTCHA solving in Registraduria scraper
+TWOCAPTCHA_API_KEY = config('TWOCAPTCHA_API_KEY', default='')
+
 
 # Application definition
 
