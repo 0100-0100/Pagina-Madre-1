@@ -29,10 +29,10 @@ Add background task processing with web scraping to validate user cedulas agains
   2. qcluster process starts without errors
   3. Simple echo task executes and completes successfully
   4. SQLite database not locked during task execution
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 11-01: Django-Q2 setup with SQLite WAL mode
+- [ ] 11-01-PLAN.md - Install Django-Q2, configure SQLite WAL mode, verify task execution
 
 ---
 
@@ -128,7 +128,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 11. Django-Q2 Foundation | 0/TBD | Not started | - |
+| 11. Django-Q2 Foundation | 0/1 | Ready for execution | - |
 | 12. CedulaInfo Model + RBAC | 0/TBD | Not started | - |
 | 13. Playwright Scraper | 0/TBD | Not started | - |
 | 14. Task Integration + Signals | 0/TBD | Not started | - |
