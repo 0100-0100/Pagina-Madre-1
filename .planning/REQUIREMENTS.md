@@ -35,9 +35,9 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ### Triggers
 
-- [ ] **TRIG-01**: Background task auto-triggers on user registration via post_save signal
-- [ ] **TRIG-02**: Signal uses transaction.on_commit() to avoid race conditions
-- [ ] **TRIG-03**: Retry logic with exponential backoff (max 3 attempts)
+- [x] **TRIG-01**: Background task auto-triggers on user registration via post_save signal — v1.3 Phase 14
+- [x] **TRIG-02**: Signal uses transaction.on_commit() to avoid race conditions — v1.3 Phase 14
+- [x] **TRIG-03**: Retry logic with exponential backoff (max 3 attempts) — v1.3 Phase 14
 
 ### RBAC (Role-Based Access Control)
 
@@ -101,9 +101,9 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 | SCRP-05 | Phase 13 | Complete |
 | SCRP-06 | Phase 13 | Complete |
 | SCRP-07 | Phase 13 | Complete |
-| TRIG-01 | Phase 14 | Pending |
-| TRIG-02 | Phase 14 | Pending |
-| TRIG-03 | Phase 14 | Pending |
+| TRIG-01 | Phase 14 | Complete |
+| TRIG-02 | Phase 14 | Complete |
+| TRIG-03 | Phase 14 | Complete |
 | RBAC-04 | Phase 15 | Pending |
 | RBAC-05 | Phase 15 | Pending |
 | RBAC-06 | Phase 15 | Pending |
@@ -121,4 +121,4 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-20 after Phase 13 completion*
+*Last updated: 2026-01-20 after Phase 14 completion*
