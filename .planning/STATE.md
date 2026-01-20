@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 13 - Playwright Scraper (IN PROGRESS)
-Plan: 1 of 02 complete
-Status: In progress - Plan 01 complete, ready for Plan 02
-Last activity: 2026-01-20 — Completed 13-01-PLAN.md (Playwright Setup + Base Scraper)
+Phase: 13 - Playwright Scraper (COMPLETE)
+Plan: 2 of 02 complete
+Status: Phase complete - Ready for Phase 14 (Task Integration + Signals)
+Last activity: 2026-01-20 — Completed 13-02-PLAN.md (Scraping Logic Implementation)
 
-Progress: [#####.....] 2.5/6 phases (42%)
+Progress: [######....] 3/6 phases (50%)
 
 ## v1.3 Milestone Overview
 
@@ -25,7 +25,7 @@ Progress: [#####.....] 2.5/6 phases (42%)
 |-------|------|--------------|--------|
 | 11 | Django-Q2 Foundation | 4 | Complete |
 | 12 | CedulaInfo Model + RBAC | 9 | Complete (2/2 plans) |
-| 13 | Playwright Scraper | 7 | In progress (1/2 plans) |
+| 13 | Playwright Scraper | 7 | Complete (2/2 plans) |
 | 14 | Task Integration + Signals | 3 | Not started |
 | 15 | Profile Display + Refresh | 6 | Not started |
 | 16 | Referidos Page Updates | 2 | Not started |
@@ -66,6 +66,9 @@ See: .planning/MILESTONES.md for full history
 - Browser singleton with lazy initialization for Playwright
 - Fresh context per scrape with cleanup in finally block
 - Headed browser mode when DEBUG=True for visual debugging
+- CSS selectors as module constants for easy maintenance
+- Class-level rate limiting (5s minimum between requests)
+- raw_html stored only on error states for debugging
 
 ### v1.3 Research Insights
 
@@ -75,6 +78,7 @@ See: .planning/MILESTONES.md for full history
 - Playwright-stealth for F5 bypass (success not guaranteed)
 - transaction.on_commit() for signal-triggered tasks
 - Fresh browser instance per task (no sharing) - IMPLEMENTED via context isolation
+- F5 CSPM blocks headless requests - graceful failure implemented
 
 ### Pending Todos
 
@@ -82,18 +86,19 @@ See: .planning/MILESTONES.md for full history
 
 ### Blockers/Concerns
 
-- F5 CSPM bot detection may block scraper (build for graceful failure)
+- F5 CSPM bot detection blocks scraper (graceful failure implemented, may need playwright-stealth later)
 
 ## Session Continuity
 
 Last session: 2026-01-20
-Stopped at: Completed 13-01-PLAN.md (Playwright Setup + Base Scraper)
-Resume file: .planning/phases/13-playwright-scraper/13-02-PLAN.md
-Next: Execute Plan 02 (Actual scraping logic for Registraduria)
+Stopped at: Completed 13-02-PLAN.md (Scraping Logic Implementation)
+Resume file: None
+Next: Execute Phase 14 (Task Integration + Signals)
 
 ## To Resume Development
 
-Phase 13 Plan 01 complete:
+Phase 13 complete:
 - 13-01: Playwright 1.57 installed, RegistraduriaScraper class with browser singleton - COMPLETE
+- 13-02: Full scraping logic with 7 response types and 5s rate limiting - COMPLETE
 
-Continue with Phase 13 Plan 02 to implement actual scraping logic for Registraduria census lookup.
+Continue with Phase 14 to wire scraper into Django-Q2 background tasks with signals.
