@@ -1,0 +1,140 @@
+# Roadmap: v1.3 Async Background Jobs
+
+**Status:** In Progress
+**Phases:** 11-16
+**Total Plans:** TBD
+
+## Overview
+
+Add background task processing with web scraping to validate user cedulas against Registraduria's electoral census. Six phases: Django-Q2 foundation with SQLite WAL mode, CedulaInfo model with RBAC role fields, Playwright headless browser scraper, task integration with post_save signals, profile display with refresh buttons, and referidos page census data updates. The system auto-triggers validation on registration and allows manual refresh by leaders.
+
+## Phases
+
+- [ ] **Phase 11: Django-Q2 Foundation** - Task queue infrastructure with SQLite-safe configuration
+- [ ] **Phase 12: CedulaInfo Model + RBAC** - Data model for census data and role field for access control
+- [ ] **Phase 13: Playwright Scraper** - Headless browser scraping with stealth patches
+- [ ] **Phase 14: Task Integration + Signals** - Background task wiring with post_save triggers
+- [ ] **Phase 15: Profile Display + Refresh** - Census display and leader refresh buttons
+- [ ] **Phase 16: Referidos Page Updates** - Census data for referred users
+
+## Phase Details
+
+### Phase 11: Django-Q2 Foundation
+
+**Goal:** Background task queue runs reliably with SQLite database.
+**Depends on:** Nothing (foundation phase)
+**Requirements:** INFRA-01, INFRA-02, INFRA-03, INFRA-04
+**Success Criteria** (what must be TRUE):
+  1. Django-Q2 installed and visible in Django admin
+  2. qcluster process starts without errors
+  3. Simple echo task executes and completes successfully
+  4. SQLite database not locked during task execution
+**Plans:** TBD
+
+Plans:
+- [ ] 11-01: Django-Q2 setup with SQLite WAL mode
+
+---
+
+### Phase 12: CedulaInfo Model + RBAC
+
+**Goal:** Census data can be stored and roles control access.
+**Depends on:** Phase 11 (Django-Q2 migrations complete)
+**Requirements:** DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06, RBAC-01, RBAC-02, RBAC-03
+**Success Criteria** (what must be TRUE):
+  1. CedulaInfo model exists with all status choices visible in admin
+  2. New users automatically have role=USER
+  3. Admin can change user role to LEADER
+  4. CedulaInfo linked to user visible in admin (read-only)
+**Plans:** TBD
+
+Plans:
+- [ ] 12-01: CedulaInfo model and migrations
+- [ ] 12-02: Role field and admin configuration
+
+---
+
+### Phase 13: Playwright Scraper
+
+**Goal:** Scraper retrieves census data from Registraduria for any cedula.
+**Depends on:** Phase 12 (CedulaInfo model exists to store results)
+**Requirements:** SCRP-01, SCRP-02, SCRP-03, SCRP-04, SCRP-05, SCRP-06, SCRP-07
+**Success Criteria** (what must be TRUE):
+  1. Playwright installed with Chromium browser binary
+  2. Scraper returns voting location for valid active cedula
+  3. Scraper returns cancelled status for deceased cedula
+  4. Scraper returns not_found for invalid cedula
+  5. Scraper handles timeout gracefully without crashing
+**Plans:** TBD
+
+Plans:
+- [ ] 13-01: Playwright installation and stealth config
+- [ ] 13-02: Scraper implementation with all response types
+
+---
+
+### Phase 14: Task Integration + Signals
+
+**Goal:** Census lookup auto-triggers on registration and retries on failure.
+**Depends on:** Phase 13 (scraper exists)
+**Requirements:** TRIG-01, TRIG-02, TRIG-03
+**Success Criteria** (what must be TRUE):
+  1. New user registration queues background task
+  2. Task executes after registration transaction commits
+  3. Failed task retries with exponential backoff (max 3 attempts)
+**Plans:** TBD
+
+Plans:
+- [ ] 14-01: Task definition and signal wiring
+
+---
+
+### Phase 15: Profile Display + Refresh
+
+**Goal:** Users see their census data and leaders can refresh for referrals.
+**Depends on:** Phase 14 (tasks populate CedulaInfo)
+**Requirements:** DISP-01, DISP-02, RBAC-04, RBAC-05, RBAC-06, RBAC-07
+**Success Criteria** (what must be TRUE):
+  1. User's profile page shows census status (pending, found, error)
+  2. User's profile page shows voting location when available
+  3. Leader sees refresh button for individual referred users
+  4. Leader sees bulk refresh button for all referred users
+  5. Regular users cannot access refresh endpoints for other users
+**Plans:** TBD
+
+Plans:
+- [ ] 15-01: Profile census display
+- [ ] 15-02: Leader refresh buttons and RBAC enforcement
+
+---
+
+### Phase 16: Referidos Page Updates
+
+**Goal:** Leaders see census data for all their referred users with live updates.
+**Depends on:** Phase 15 (census display and RBAC complete)
+**Requirements:** DISP-03, DISP-04, DISP-05
+**Success Criteria** (what must be TRUE):
+  1. Referidos table shows census status column for each user
+  2. Bulk refresh button visible only to leaders
+  3. Page auto-updates when census data is fetched (HTMX polling)
+**Plans:** TBD
+
+Plans:
+- [ ] 16-01: Referidos page census columns and bulk refresh
+
+---
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 11. Django-Q2 Foundation | 0/TBD | Not started | - |
+| 12. CedulaInfo Model + RBAC | 0/TBD | Not started | - |
+| 13. Playwright Scraper | 0/TBD | Not started | - |
+| 14. Task Integration + Signals | 0/TBD | Not started | - |
+| 15. Profile Display + Refresh | 0/TBD | Not started | - |
+| 16. Referidos Page Updates | 0/TBD | Not started | - |
+
+---
+*Created: 2026-01-19*
+*Milestone: v1.3 Async Background Jobs*

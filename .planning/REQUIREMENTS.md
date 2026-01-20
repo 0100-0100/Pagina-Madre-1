@@ -55,6 +55,7 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 - [ ] **DISP-02**: Census status indicator (pending, found, error, etc.)
 - [ ] **DISP-03**: Leader's referidos page shows census data for referred users
 - [ ] **DISP-04**: Bulk refresh button visible only to leaders on referidos page
+- [ ] **DISP-05**: Referidos page auto-updates when census data is fetched (HTMX polling)
 
 ## Future Requirements (v2+)
 
@@ -72,7 +73,7 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 |---------|--------|
 | Editable census data | Data comes from official source, must be read-only |
 | Real-time scraping in HTTP cycle | Blocks user request, bad UX |
-| Unlimited retries | Would spam Registraduría, risk IP block |
+| Unlimited retries | Would spam Registraduria, risk IP block |
 | Complex anti-bot bypass | Diminishing returns, build for graceful failure |
 | User self-promotion to Leader | Security risk, admin-only role assignment |
 
@@ -111,12 +112,13 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 | DISP-02 | Phase 15 | Pending |
 | DISP-03 | Phase 16 | Pending |
 | DISP-04 | Phase 16 | Pending |
+| DISP-05 | Phase 16 | Pending |
 
 **Coverage:**
-- v1.3 requirements: 29 total
-- Mapped to phases: 29
+- v1.3 requirements: 32 total
+- Mapped to phases: 32
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-19 after initial definition*
+*Last updated: 2026-01-19 after roadmap creation*
