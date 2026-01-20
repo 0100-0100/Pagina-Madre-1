@@ -16,13 +16,13 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ### Scraping
 
-- [ ] **SCRP-01**: Playwright headless browser installed with Chromium
-- [ ] **SCRP-02**: Stealth patches applied to avoid bot detection
-- [ ] **SCRP-03**: Scraper handles "active" response (voting location data)
-- [ ] **SCRP-04**: Scraper handles "cancelled" response (deceased/novedad data)
-- [ ] **SCRP-05**: Scraper handles "not found" response
-- [ ] **SCRP-06**: Scraper handles errors gracefully (timeout, network, bot block)
-- [ ] **SCRP-07**: Rate limiting between requests (minimum 5 seconds)
+- [x] **SCRP-01**: Playwright headless browser installed with Chromium — v1.3 Phase 13
+- [x] **SCRP-02**: Stealth patches applied to avoid bot detection — v1.3 Phase 13 (minimal, structured for future)
+- [x] **SCRP-03**: Scraper handles "active" response (voting location data) — v1.3 Phase 13
+- [x] **SCRP-04**: Scraper handles "cancelled" response (deceased/novedad data) — v1.3 Phase 13
+- [x] **SCRP-05**: Scraper handles "not found" response — v1.3 Phase 13
+- [x] **SCRP-06**: Scraper handles errors gracefully (timeout, network, bot block) — v1.3 Phase 13
+- [x] **SCRP-07**: Rate limiting between requests (minimum 5 seconds) — v1.3 Phase 13
 
 ### Data Model
 
@@ -94,13 +94,13 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 | RBAC-01 | Phase 12 | Complete |
 | RBAC-02 | Phase 12 | Complete |
 | RBAC-03 | Phase 12 | Complete |
-| SCRP-01 | Phase 13 | Pending |
-| SCRP-02 | Phase 13 | Pending |
-| SCRP-03 | Phase 13 | Pending |
-| SCRP-04 | Phase 13 | Pending |
-| SCRP-05 | Phase 13 | Pending |
-| SCRP-06 | Phase 13 | Pending |
-| SCRP-07 | Phase 13 | Pending |
+| SCRP-01 | Phase 13 | Complete |
+| SCRP-02 | Phase 13 | Complete |
+| SCRP-03 | Phase 13 | Complete |
+| SCRP-04 | Phase 13 | Complete |
+| SCRP-05 | Phase 13 | Complete |
+| SCRP-06 | Phase 13 | Complete |
+| SCRP-07 | Phase 13 | Complete |
 | TRIG-01 | Phase 14 | Pending |
 | TRIG-02 | Phase 14 | Pending |
 | TRIG-03 | Phase 14 | Pending |
@@ -121,4 +121,4 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-20 after Phase 12 completion*
+*Last updated: 2026-01-20 after Phase 13 completion*

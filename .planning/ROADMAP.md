@@ -12,7 +12,7 @@ Add background task processing with web scraping to validate user cedulas agains
 
 - [x] **Phase 11: Django-Q2 Foundation** - Task queue infrastructure with SQLite-safe configuration ✓
 - [x] **Phase 12: CedulaInfo Model + RBAC** - Data model for census data and role field for access control ✓
-- [ ] **Phase 13: Playwright Scraper** - Headless browser scraping with stealth patches
+- [x] **Phase 13: Playwright Scraper** - Headless browser scraping with stealth patches ✓
 - [ ] **Phase 14: Task Integration + Signals** - Background task wiring with post_save triggers
 - [ ] **Phase 15: Profile Display + Refresh** - Census display and leader refresh buttons
 - [ ] **Phase 16: Referidos Page Updates** - Census data for referred users
@@ -68,8 +68,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Install Playwright with Chromium, create browser singleton
-- [ ] 13-02-PLAN.md — Implement scraper with all response types and rate limiting
+- [x] 13-01-PLAN.md — Install Playwright with Chromium, create browser singleton
+- [x] 13-02-PLAN.md — Implement scraper with all response types and rate limiting
 
 ---
 
@@ -130,7 +130,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 11. Django-Q2 Foundation | 1/1 | Complete ✓ | 2026-01-19 |
 | 12. CedulaInfo Model + RBAC | 2/2 | Complete ✓ | 2026-01-20 |
-| 13. Playwright Scraper | 0/2 | Not started | - |
+| 13. Playwright Scraper | 2/2 | Complete ✓ | 2026-01-20 |
 | 14. Task Integration + Signals | 0/TBD | Not started | - |
 | 15. Profile Display + Refresh | 0/TBD | Not started | - |
 | 16. Referidos Page Updates | 0/TBD | Not started | - |
