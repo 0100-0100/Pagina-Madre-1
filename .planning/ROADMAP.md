@@ -82,10 +82,10 @@ Plans:
   1. New user registration queues background task
   2. Task executes after registration transaction commits
   3. Failed task retries with exponential backoff (max 3 attempts)
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 14-01: Task definition and signal wiring
+- [ ] 14-01-PLAN.md — Signal handler, validate_cedula task, exponential backoff retry
 
 ---
 
@@ -131,7 +131,7 @@ Plans:
 | 11. Django-Q2 Foundation | 1/1 | Complete ✓ | 2026-01-19 |
 | 12. CedulaInfo Model + RBAC | 2/2 | Complete ✓ | 2026-01-20 |
 | 13. Playwright Scraper | 2/2 | Complete ✓ | 2026-01-20 |
-| 14. Task Integration + Signals | 0/TBD | Not started | - |
+| 14. Task Integration + Signals | 0/1 | Not started | - |
 | 15. Profile Display + Refresh | 0/TBD | Not started | - |
 | 16. Referidos Page Updates | 0/TBD | Not started | - |
 
