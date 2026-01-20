@@ -19,6 +19,10 @@ def validate_cedula(value):
 
 
 class CustomUser(AbstractUser):
+    class Role(models.TextChoices):
+        USER = 'USER', 'Usuario'
+        LEADER = 'LEADER', 'Lider'
+
     cedula = models.CharField(
         max_length=10,
         unique=True,
@@ -58,6 +62,13 @@ class CustomUser(AbstractUser):
     referral_goal = models.PositiveIntegerField(
         default=10,
         verbose_name='Meta de referidos'
+    )
+
+    role = models.CharField(
+        max_length=10,
+        choices=Role.choices,
+        default=Role.USER,
+        verbose_name='Rol',
     )
 
     def __str__(self):
