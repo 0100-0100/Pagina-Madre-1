@@ -81,10 +81,30 @@ class RegistraduriaScraper:
     - get_browser() performs lazy initialization
     - close_browser() cleans up resources
     - Each scrape_cedula() call creates a fresh context
+
+    Rate limiting:
+    - _last_request_time tracks last scrape across all instances
+    - _enforce_rate_limit() ensures minimum 5 seconds between requests
     """
 
     _playwright = None
     _browser = None
+    _last_request_time: float = 0  # Class-level rate limiting tracker
+
+    @classmethod
+    def _enforce_rate_limit(cls):
+        """
+        Ensure minimum 5 seconds between requests.
+
+        Sleeps if needed to maintain rate limit, preventing
+        excessive requests to Registraduria servers.
+        """
+        elapsed = time.time() - cls._last_request_time
+        if elapsed < RATE_LIMIT_SECONDS:
+            sleep_time = RATE_LIMIT_SECONDS - elapsed
+            logger.debug("Rate limiting: sleeping %.1fs", sleep_time)
+            time.sleep(sleep_time)
+        cls._last_request_time = time.time()
 
     @classmethod
     def get_browser(cls):
@@ -224,6 +244,7 @@ class RegistraduriaScraper:
 
         Creates a fresh browser context for isolation, performs
         the scrape, and ensures context cleanup in finally block.
+        Enforces rate limiting (minimum 5 seconds between requests).
 
         Args:
             cedula: Colombian cedula number (6-10 digits)
@@ -233,6 +254,8 @@ class RegistraduriaScraper:
                   Status codes: found, not_found, cancelled, blocked,
                   timeout, network_error, parse_error
         """
+        self._enforce_rate_limit()
+
         browser = self.get_browser()
         context = browser.new_context()
         page = None
