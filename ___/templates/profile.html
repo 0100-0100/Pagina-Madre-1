@@ -365,6 +365,25 @@
             }
         });
     }
+
+    // Handle HTMX showToast events from HX-Trigger header
+    document.body.addEventListener('showToast', function(evt) {
+        const toastEl = document.getElementById('profileToast');
+        const toastBody = document.getElementById('toastMessage');
+        if (toastEl && toastBody) {
+            toastBody.textContent = evt.detail.message;
+            const header = toastEl.querySelector('.toast-header i');
+            if (evt.detail.type === 'warning') {
+                header.className = 'bi bi-exclamation-triangle text-warning me-2';
+            } else if (evt.detail.type === 'info') {
+                header.className = 'bi bi-info-circle text-info me-2';
+            } else {
+                header.className = 'bi bi-check-circle text-success me-2';
+            }
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+    });
 })();
 </script>
 {% endblock %}

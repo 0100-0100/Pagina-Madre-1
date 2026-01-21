@@ -1,5 +1,11 @@
 {% load humanize %}
 
+<style>
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: inline; }
+    .htmx-request .htmx-indicator-hide { display: none; }
+</style>
+
 <div id="census-section"
      hx-get="{% url 'census_section' %}"
      hx-trigger="every 5s [document.querySelector('#census-status').dataset.polling === 'true']"
@@ -120,6 +126,26 @@
             <i class="bi bi-question-circle"></i> Estado desconocido
         </span>
         <p class="text-muted mb-0 mt-2">Estado: {{ cedula_info.get_status_display }}</p>
+    </div>
+    {% endif %}
+
+    {% if show_refresh and is_leader %}
+    <!-- Refresh button for leaders -->
+    <div class="mt-3">
+        <button hx-post="{% url 'refresh_cedula' %}"
+                hx-target="#census-section"
+                hx-swap="outerHTML"
+                hx-disabled-elt="this"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                class="btn btn-sm btn-outline-secondary">
+            <span class="htmx-indicator">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+            </span>
+            <span class="htmx-indicator-hide">
+                <i class="bi bi-arrow-clockwise"></i>
+            </span>
+            Actualizar
+        </button>
     </div>
     {% endif %}
 
