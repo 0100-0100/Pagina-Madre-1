@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Mi Perfil - Pagina Madre{% endblock %}
 
@@ -121,6 +122,16 @@
                             <i class="bi bi-check-lg"></i> Guardar
                         </button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Datos Electorales Section -->
+            <div class="card shadow mt-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-geo-alt"></i> Datos Electorales
+                    </h5>
+                    {% include 'partials/_census_section.html' %}
                 </div>
             </div>
         </div>

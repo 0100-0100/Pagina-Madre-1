@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.urls import reverse, reverse_lazy
 from .forms import CustomUserCreationForm, ProfileForm, CustomPasswordChangeForm
+from .models import CedulaInfo
 
 
 def register(request):
@@ -66,8 +67,39 @@ def profile_view(request):
     else:
         form = ProfileForm(instance=request.user)
 
+    # Get census information for profile display
+    cedula_info = getattr(request.user, 'cedula_info', None)
+    is_polling = False
+    if cedula_info:
+        is_polling = cedula_info.status in [
+            CedulaInfo.Status.PENDING,
+            CedulaInfo.Status.PROCESSING
+        ]
+
     return render(request, 'profile.html', {
         'form': form,
+        'user': request.user,
+        'cedula_info': cedula_info,
+        'is_polling': is_polling,
+    })
+
+
+@login_required
+def census_section_view(request):
+    """Return census section partial for HTMX polling."""
+    cedula_info = getattr(request.user, 'cedula_info', None)
+
+    # Determine if polling should continue
+    is_polling = False
+    if cedula_info:
+        is_polling = cedula_info.status in [
+            CedulaInfo.Status.PENDING,
+            CedulaInfo.Status.PROCESSING
+        ]
+
+    return render(request, 'partials/_census_section.html', {
+        'cedula_info': cedula_info,
+        'is_polling': is_polling,
         'user': request.user,
     })
 
