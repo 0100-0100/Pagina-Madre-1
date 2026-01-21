@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 14 - Task Integration + Signals (COMPLETE)
+Phase: 15 - Profile Display + Refresh (IN PROGRESS)
 Plan: 1 of 01 complete
-Status: Phase complete - Ready for Phase 15 (Profile Display + Refresh)
-Last activity: 2026-01-20 — Completed 14-01-PLAN.md (Signal + Task Wiring)
+Status: Plan 15-01 complete - Profile display with HTMX polling implemented
+Last activity: 2026-01-21 — Completed 15-01-PLAN.md (Profile Display + HTMX Polling)
 
-Progress: [#######...] 4/6 phases (67%)
+Progress: [########..] 5/6 phases (83%)
 
 ## v1.3 Milestone Overview
 
@@ -27,7 +27,7 @@ Progress: [#######...] 4/6 phases (67%)
 | 12 | CedulaInfo Model + RBAC | 9 | Complete (2/2 plans) |
 | 13 | Playwright Scraper | 7 | Complete (2/2 plans) |
 | 14 | Task Integration + Signals | 3 | Complete (1/1 plan) |
-| 15 | Profile Display + Refresh | 6 | Not started |
+| 15 | Profile Display + Refresh | 6 | Complete (1/1 plan) |
 | 16 | Referidos Page Updates | 2 | Not started |
 
 ## Milestones Shipped
@@ -74,6 +74,10 @@ See: .planning/MILESTONES.md for full history
 - dispatch_uid for signal deduplication
 - schedule() with schedule_type='O' for one-time delayed retry
 - Status PROCESSING during scrape (matches model choices)
+- HTMX 2.0.4 with SRI from unpkg CDN for dynamic updates
+- Conditional polling via data-polling attribute checked in hx-trigger
+- 5-second polling interval for PENDING/PROCESSING states
+- Census section as separate card below profile form
 
 ### v1.3 Research Insights
 
@@ -95,18 +99,19 @@ See: .planning/MILESTONES.md for full history
 
 ## Session Continuity
 
-Last session: 2026-01-20
-Stopped at: Completed 14-01-PLAN.md (Signal + Task Wiring)
+Last session: 2026-01-21
+Stopped at: Completed 15-01-PLAN.md (Profile Display + HTMX Polling)
 Resume file: None
-Next: Execute Phase 15 (Profile Display + Refresh)
+Next: Execute Phase 16 (Referidos Page Updates)
 
 ## To Resume Development
 
-Phase 14 complete:
-- 14-01: post_save signal, validate_cedula task with 3-attempt backoff - COMPLETE
+Phase 15 complete:
+- 15-01: HTMX census display with auto-polling on profile page - COMPLETE
 
-Key files created:
-- ___/accounts/signals.py - post_save handler with transaction.on_commit
-- ___/accounts/tasks.py - validate_cedula with exponential backoff retry
+Key files created/modified:
+- ___/templates/partials/_census_section.html - HTMX-swappable census partial
+- ___/templates/base.html - HTMX 2.0.4 script loaded globally
+- ___/accounts/views.py - census_section_view for polling endpoint
 
-Continue with Phase 15 to add profile display of CedulaInfo status and manual refresh for leaders.
+Continue with Phase 16 to update Referidos page with census status display.
