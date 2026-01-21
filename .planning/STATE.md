@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 15 - Profile Display + Refresh (COMPLETE)
-Plan: 2 of 2 complete
-Status: Phase 15 complete - HTMX polling and leader refresh button implemented
-Last activity: 2026-01-21 — Completed 15-02-PLAN.md (Leader Refresh + RBAC)
+Phase: 16 - Referidos Page Updates (COMPLETE)
+Plan: 1 of 1 complete
+Status: v1.3 Milestone COMPLETE - All async background job features shipped
+Last activity: 2026-01-21 — Completed 16-01-PLAN.md (Referidos Census Display + Bulk Refresh)
 
-Progress: [########..] 5/6 phases (83%)
+Progress: [##########] 6/6 phases (100%)
 
 ## v1.3 Milestone Overview
 
@@ -28,7 +28,7 @@ Progress: [########..] 5/6 phases (83%)
 | 13 | Playwright Scraper | 7 | Complete (2/2 plans) |
 | 14 | Task Integration + Signals | 3 | Complete (1/1 plan) |
 | 15 | Profile Display + Refresh | 6 | Complete (2/2 plans) |
-| 16 | Referidos Page Updates | 2 | Not started |
+| 16 | Referidos Page Updates | 2 | Complete (1/1 plan) |
 
 ## Milestones Shipped
 
@@ -82,6 +82,11 @@ See: .planning/MILESTONES.md for full history
 - 30-second server-side cooldown using fetched_at timestamp
 - HX-Trigger JSON header for showToast events
 - Status set to PROCESSING before returning to avoid race conditions
+- Checkbox visibility only for non-final statuses (excludes ACTIVE/CANCELLED from bulk refresh)
+- Max 10 bulk refresh limit to prevent queue overload
+- Client-side filtering and sorting for instant response on referidos table
+- Empty response partial for HTMX toast-only responses
+- Expandable table rows with detail sections for voting location display
 
 ### v1.3 Research Insights
 
@@ -104,21 +109,28 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-21
-Stopped at: Completed 15-02-PLAN.md (Leader Refresh + RBAC)
+Stopped at: Completed 16-01-PLAN.md (Referidos Census Display + Bulk Refresh)
 Resume file: None
-Next: Execute Phase 16 (Referidos Page Updates)
+Next: v1.3 Milestone COMPLETE - Ready for production testing or v1.4 planning
 
 ## To Resume Development
 
-Phase 15 complete (2 plans):
-- 15-01: HTMX census display with auto-polling on profile page - COMPLETE
-- 15-02: Leader-only refresh button with RBAC and 30s cooldown - COMPLETE
+**v1.3 Milestone COMPLETE** (2026-01-21)
+
+Phase 16 complete (1 plan):
+- 16-01: Referidos table with census status, filters, bulk refresh - COMPLETE
 
 Key files created/modified:
-- ___/accounts/decorators.py - leader_or_self_required RBAC decorator
-- ___/accounts/views.py - refresh_cedula_view with cooldown
-- ___/accounts/urls.py - /refrescar-cedula/ routes
-- ___/templates/partials/_census_section.html - refresh button with HTMX spinner
-- ___/templates/profile.html - showToast event handler
+- ___/templates/partials/_referral_row.html - Referral row with status badge and expandable details
+- ___/templates/partials/_empty_response.html - Empty response for toast-only HTMX swaps
+- ___/accounts/views.py - bulk_refresh_view, referral_row_view
+- ___/accounts/urls.py - /bulk-refresh/ and /referido/ routes
+- ___/templates/referidos.html - Complete rewrite with filters, sorting, bulk actions
 
-Continue with Phase 16 to update Referidos page with census status display.
+**All v1.3 features delivered:**
+- Async background job queue (Django-Q2)
+- Census validation scraping (Playwright)
+- Profile census display with auto-refresh
+- Leader bulk refresh for referrals
+- RBAC controls for leader actions
+- 30-second cooldown on refresh operations
