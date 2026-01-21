@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 ## Current Position
 
-Phase: 15 - Profile Display + Refresh (IN PROGRESS)
-Plan: 1 of 01 complete
-Status: Plan 15-01 complete - Profile display with HTMX polling implemented
-Last activity: 2026-01-21 — Completed 15-01-PLAN.md (Profile Display + HTMX Polling)
+Phase: 15 - Profile Display + Refresh (COMPLETE)
+Plan: 2 of 2 complete
+Status: Phase 15 complete - HTMX polling and leader refresh button implemented
+Last activity: 2026-01-21 — Completed 15-02-PLAN.md (Leader Refresh + RBAC)
 
 Progress: [########..] 5/6 phases (83%)
 
@@ -27,7 +27,7 @@ Progress: [########..] 5/6 phases (83%)
 | 12 | CedulaInfo Model + RBAC | 9 | Complete (2/2 plans) |
 | 13 | Playwright Scraper | 7 | Complete (2/2 plans) |
 | 14 | Task Integration + Signals | 3 | Complete (1/1 plan) |
-| 15 | Profile Display + Refresh | 6 | Complete (1/1 plan) |
+| 15 | Profile Display + Refresh | 6 | Complete (2/2 plans) |
 | 16 | Referidos Page Updates | 2 | Not started |
 
 ## Milestones Shipped
@@ -78,6 +78,10 @@ See: .planning/MILESTONES.md for full history
 - Conditional polling via data-polling attribute checked in hx-trigger
 - 5-second polling interval for PENDING/PROCESSING states
 - Census section as separate card below profile form
+- leader_or_self_required decorator for RBAC checks (self-access first, then role)
+- 30-second server-side cooldown using fetched_at timestamp
+- HX-Trigger JSON header for showToast events
+- Status set to PROCESSING before returning to avoid race conditions
 
 ### v1.3 Research Insights
 
@@ -100,18 +104,21 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-21
-Stopped at: Completed 15-01-PLAN.md (Profile Display + HTMX Polling)
+Stopped at: Completed 15-02-PLAN.md (Leader Refresh + RBAC)
 Resume file: None
 Next: Execute Phase 16 (Referidos Page Updates)
 
 ## To Resume Development
 
-Phase 15 complete:
+Phase 15 complete (2 plans):
 - 15-01: HTMX census display with auto-polling on profile page - COMPLETE
+- 15-02: Leader-only refresh button with RBAC and 30s cooldown - COMPLETE
 
 Key files created/modified:
-- ___/templates/partials/_census_section.html - HTMX-swappable census partial
-- ___/templates/base.html - HTMX 2.0.4 script loaded globally
-- ___/accounts/views.py - census_section_view for polling endpoint
+- ___/accounts/decorators.py - leader_or_self_required RBAC decorator
+- ___/accounts/views.py - refresh_cedula_view with cooldown
+- ___/accounts/urls.py - /refrescar-cedula/ routes
+- ___/templates/partials/_census_section.html - refresh button with HTMX spinner
+- ___/templates/profile.html - showToast event handler
 
 Continue with Phase 16 to update Referidos page with census status display.
