@@ -201,5 +201,12 @@ class CustomPasswordChangeView(PasswordChangeView):
 @login_required
 def referidos_view(request):
     """View showing users referred by the current user."""
-    referrals = request.user.referrals.all().order_by('-date_joined')
-    return render(request, 'referidos.html', {'referrals': referrals})
+    referrals = request.user.referrals.prefetch_related('cedula_info').all().order_by('-date_joined')
+    is_leader = request.user.role == CustomUser.Role.LEADER
+    referral_url = request.build_absolute_uri(reverse('register') + f'?ref={request.user.referral_code}')
+
+    return render(request, 'referidos.html', {
+        'referrals': referrals,
+        'is_leader': is_leader,
+        'referral_url': referral_url,
+    })
