@@ -2,7 +2,7 @@
 
 **Status:** In Progress
 **Phases:** 11-16
-**Total Plans:** TBD
+**Total Plans:** 9
 
 ## Overview
 
@@ -116,10 +116,10 @@ Plans:
   1. Referidos table shows census status column for each user
   2. Bulk refresh button visible only to leaders
   3. Page auto-updates when census data is fetched (HTMX polling)
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 16-01: Referidos page census columns and bulk refresh
+- [ ] 16-01-PLAN.md — Referidos page with census status, expandable rows, filters, bulk refresh
 
 ---
 
@@ -132,7 +132,7 @@ Plans:
 | 13. Playwright Scraper | 2/2 | Complete ✓ | 2026-01-20 |
 | 14. Task Integration + Signals | 1/1 | Complete ✓ | 2026-01-20 |
 | 15. Profile Display + Refresh | 2/2 | Complete ✓ | 2026-01-21 |
-| 16. Referidos Page Updates | 0/TBD | Not started | - |
+| 16. Referidos Page Updates | 0/1 | Not started | - |
 
 ---
 *Created: 2026-01-19*
