@@ -2,7 +2,6 @@
 
 {% with cedula_info=referral.cedula_info %}
 {% with status=cedula_info.status|default:'NONE' %}
-{% with can_refresh=is_leader and status != 'ACTIVE' and status != 'CANCELLED_DECEASED' and status != 'CANCELLED_OTHER' %}
 
 <!-- Main referral row -->
 <tr class="referral-row"
@@ -15,7 +14,7 @@
     aria-expanded="false">
 
     <!-- Checkbox column (only if leader and can refresh) -->
-    {% if can_refresh %}
+    {% if is_leader and status != 'ACTIVE' and status != 'CANCELLED_DECEASED' and status != 'CANCELLED_OTHER' %}
     <td onclick="event.stopPropagation();">
         <input type="checkbox"
                name="ids"
@@ -160,7 +159,7 @@
             {% endif %}
 
             <!-- Per-referral refresh button (if leader and can refresh) -->
-            {% if can_refresh %}
+            {% if is_leader and status != 'ACTIVE' and status != 'CANCELLED_DECEASED' and status != 'CANCELLED_OTHER' %}
             <div class="mt-3">
                 <button hx-post="{% url 'refresh_cedula_user' referral.id %}"
                         hx-target="#row-{{ referral.id }}"
@@ -182,6 +181,5 @@
     </td>
 </tr>
 
-{% endwith %}
 {% endwith %}
 {% endwith %}
