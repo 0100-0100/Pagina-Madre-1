@@ -1,6 +1,6 @@
 # Roadmap: v1.3 Async Background Jobs
 
-**Status:** In Progress
+**Status:** Complete
 **Phases:** 11-16
 **Total Plans:** 9
 
@@ -15,7 +15,7 @@ Add background task processing with web scraping to validate user cedulas agains
 - [x] **Phase 13: Playwright Scraper** - Headless browser scraping with stealth patches ✓
 - [x] **Phase 14: Task Integration + Signals** - Background task wiring with post_save triggers ✓
 - [x] **Phase 15: Profile Display + Refresh** - Census display and leader refresh buttons ✓
-- [ ] **Phase 16: Referidos Page Updates** - Census data for referred users
+- [x] **Phase 16: Referidos Page Updates** - Census data for referred users ✓
 
 ## Phase Details
 
@@ -119,7 +119,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 16-01-PLAN.md — Referidos page with census status, expandable rows, filters, bulk refresh
+- [x] 16-01-PLAN.md — Referidos page with census status, expandable rows, filters, bulk refresh
 
 ---
 
@@ -132,7 +132,7 @@ Plans:
 | 13. Playwright Scraper | 2/2 | Complete ✓ | 2026-01-20 |
 | 14. Task Integration + Signals | 1/1 | Complete ✓ | 2026-01-20 |
 | 15. Profile Display + Refresh | 2/2 | Complete ✓ | 2026-01-21 |
-| 16. Referidos Page Updates | 0/1 | Not started | - |
+| 16. Referidos Page Updates | 1/1 | Complete ✓ | 2026-01-21 |
 
 ---
 *Created: 2026-01-19*

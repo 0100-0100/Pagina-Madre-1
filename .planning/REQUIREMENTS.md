@@ -46,16 +46,16 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 - [x] **RBAC-03**: Only Django superadmin can change user roles (via admin) — v1.3 Phase 12
 - [x] **RBAC-04**: Leader can view census data for users they referred — v1.3 Phase 15
 - [x] **RBAC-05**: Leader sees manual refresh button for individual referred users — v1.3 Phase 15
-- [ ] **RBAC-06**: Leader has bulk refresh button for all their referred users — v1.3 Phase 16 (deferred)
+- [x] **RBAC-06**: Leader has bulk refresh button for all their referred users — v1.3 Phase 16
 - [x] **RBAC-07**: Regular users cannot trigger refresh for other users — v1.3 Phase 15
 
 ### Display
 
 - [x] **DISP-01**: Census data displayed on user's own profile page (read-only) — v1.3 Phase 15
 - [x] **DISP-02**: Census status indicator (pending, found, error, etc.) — v1.3 Phase 15
-- [ ] **DISP-03**: Leader's referidos page shows census data for referred users
-- [ ] **DISP-04**: Bulk refresh button visible only to leaders on referidos page
-- [ ] **DISP-05**: Referidos page auto-updates when census data is fetched (HTMX polling)
+- [x] **DISP-03**: Leader's referidos page shows census data for referred users — v1.3 Phase 16
+- [x] **DISP-04**: Bulk refresh button visible only to leaders on referidos page — v1.3 Phase 16
+- [x] **DISP-05**: Referidos page auto-updates when census data is fetched (HTMX polling) — v1.3 Phase 16
 
 ## Future Requirements (v2+)
 
@@ -106,13 +106,13 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 | TRIG-03 | Phase 14 | Complete |
 | RBAC-04 | Phase 15 | Complete |
 | RBAC-05 | Phase 15 | Complete |
-| RBAC-06 | Phase 16 | Pending |
+| RBAC-06 | Phase 16 | Complete |
 | RBAC-07 | Phase 15 | Complete |
 | DISP-01 | Phase 15 | Complete |
 | DISP-02 | Phase 15 | Complete |
-| DISP-03 | Phase 16 | Pending |
-| DISP-04 | Phase 16 | Pending |
-| DISP-05 | Phase 16 | Pending |
+| DISP-03 | Phase 16 | Complete |
+| DISP-04 | Phase 16 | Complete |
+| DISP-05 | Phase 16 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 32 total
@@ -121,4 +121,4 @@ Requirements for v1.3 milestone. Each maps to roadmap phases.
 
 ---
 *Requirements defined: 2026-01-19*
-*Last updated: 2026-01-20 after Phase 14 completion*
+*Last updated: 2026-01-21 after Phase 16 completion (v1.3 Complete)*
