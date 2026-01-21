@@ -199,6 +199,78 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 
 @login_required
+def bulk_refresh_view(request):
+    """Bulk refresh census data for selected referrals (leader only)."""
+    # RBAC check
+    if request.user.role != CustomUser.Role.LEADER:
+        return HttpResponseForbidden("No tienes permiso para esta accion.")
+
+    # Get selected IDs from POST
+    ids = request.POST.getlist('ids')
+    if not ids:
+        response = render(request, 'partials/_empty_response.html', {})
+        response['HX-Trigger'] = '{"showToast": {"message": "No se seleccionaron usuarios", "type": "warning"}}'
+        return response
+
+    # Limit to max 10
+    ids = ids[:10]
+
+    # Query referrals (only those referred by this leader)
+    referrals = CustomUser.objects.filter(id__in=ids, referred_by=request.user)
+
+    refreshed = 0
+    for referral in referrals:
+        cedula_info = getattr(referral, 'cedula_info', None)
+        if not cedula_info:
+            continue
+
+        # Skip final statuses
+        if cedula_info.status in ['ACTIVE', 'CANCELLED_DECEASED', 'CANCELLED_OTHER', 'PROCESSING']:
+            continue
+
+        # Cooldown check (30 seconds)
+        if cedula_info.fetched_at:
+            cooldown_until = cedula_info.fetched_at + timedelta(seconds=30)
+            if timezone.now() < cooldown_until:
+                continue
+
+        # Set to PROCESSING and update timestamp
+        cedula_info.status = CedulaInfo.Status.PROCESSING
+        cedula_info.fetched_at = timezone.now()
+        cedula_info.save(update_fields=['status', 'fetched_at'])
+
+        # Queue async task
+        async_task('accounts.tasks.validate_cedula', referral.id, 1)
+        refreshed += 1
+
+    # Return response with toast
+    response = render(request, 'partials/_empty_response.html', {})
+    if refreshed > 0:
+        response['HX-Trigger'] = f'{{"showToast": {{"message": "{refreshed} cedulas en actualizacion", "type": "info"}}}}'
+    else:
+        response['HX-Trigger'] = '{"showToast": {"message": "Todas las cedulas seleccionadas fueron actualizadas recientemente", "type": "warning"}}'
+
+    return response
+
+
+@login_required
+def referral_row_view(request, referral_id):
+    """Return single referral row partial for HTMX updates."""
+    # RBAC check
+    if request.user.role != CustomUser.Role.LEADER:
+        return HttpResponseForbidden("No tienes permiso para esta accion.")
+
+    # Get referral (only if referred by this user)
+    from django.shortcuts import get_object_or_404
+    referral = get_object_or_404(CustomUser, id=referral_id, referred_by=request.user)
+
+    return render(request, 'partials/_referral_row.html', {
+        'referral': referral,
+        'is_leader': True,
+    })
+
+
+@login_required
 def referidos_view(request):
     """View showing users referred by the current user."""
     referrals = request.user.referrals.prefetch_related('cedula_info').all().order_by('-date_joined')
