@@ -181,6 +181,208 @@
 
 {% block extra_js %}
 <script>
-// This script will be populated in Task 3b
+(function() {
+    'use strict';
+
+    // Toggle detail row expansion
+    window.toggleDetail = function(id) {
+        const detailRow = document.getElementById('detail-' + id);
+        const mainRow = document.getElementById('row-' + id);
+
+        if (detailRow && mainRow) {
+            const isExpanded = detailRow.style.display === 'table-row';
+            detailRow.style.display = isExpanded ? 'none' : 'table-row';
+            mainRow.setAttribute('aria-expanded', !isExpanded);
+        }
+    };
+
+    // Filter table by status
+    window.filterTable = function(statusFilter) {
+        const rows = document.querySelectorAll('.referral-row');
+
+        rows.forEach(row => {
+            const status = row.dataset.status;
+            const detailRow = document.getElementById('detail-' + row.dataset.id);
+            let shouldShow = false;
+
+            if (statusFilter === 'all') {
+                shouldShow = true;
+            } else if (statusFilter === 'pending') {
+                shouldShow = ['PENDING', 'PROCESSING', 'NONE'].includes(status);
+            } else if (statusFilter === 'found') {
+                shouldShow = status === 'ACTIVE';
+            } else if (statusFilter === 'errors') {
+                shouldShow = ['ERROR', 'TIMEOUT', 'BLOCKED', 'NOT_FOUND', 'CANCELLED_DECEASED', 'CANCELLED_OTHER'].includes(status);
+            }
+
+            if (shouldShow) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+                // Collapse detail row when filtering
+                if (detailRow) {
+                    detailRow.style.display = 'none';
+                }
+                row.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Update active tab
+        document.querySelectorAll('.nav-pills .nav-link').forEach(btn => {
+            if (btn.dataset.filter === statusFilter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    };
+
+    // Sort table by column
+    let currentSortColumn = null;
+    let sortDirection = 'asc';
+
+    window.sortTable = function(column) {
+        const tbody = document.querySelector('#referrals-table tbody');
+        const rows = Array.from(document.querySelectorAll('.referral-row'));
+
+        // Toggle sort direction if clicking same column
+        if (currentSortColumn === column) {
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            sortDirection = 'asc';
+            currentSortColumn = column;
+        }
+
+        // Sort rows
+        rows.sort((a, b) => {
+            let aVal, bVal;
+
+            if (column === 'name') {
+                aVal = a.dataset.name.toLowerCase();
+                bVal = b.dataset.name.toLowerCase();
+            } else if (column === 'cedula') {
+                aVal = a.querySelector('td:nth-child(3)').textContent;
+                bVal = b.querySelector('td:nth-child(3)').textContent;
+            } else if (column === 'date') {
+                aVal = a.dataset.date;
+                bVal = b.dataset.date;
+            } else if (column === 'status') {
+                aVal = a.dataset.status;
+                bVal = b.dataset.status;
+            }
+
+            if (sortDirection === 'asc') {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
+        });
+
+        // Re-append rows with their detail rows
+        rows.forEach(row => {
+            const detailRow = document.getElementById('detail-' + row.dataset.id);
+            tbody.appendChild(row);
+            if (detailRow) {
+                tbody.appendChild(detailRow);
+            }
+        });
+    };
+
+    // Update bulk refresh button state
+    window.updateBulkButton = function() {
+        const checkboxes = document.querySelectorAll('.referral-checkbox');
+        const button = document.getElementById('bulk-refresh-btn');
+
+        if (!button) return;
+
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+
+        if (checkedCount > 0) {
+            button.disabled = false;
+            button.querySelector('.htmx-indicator-hide').innerHTML = '<i class="bi bi-arrow-clockwise"></i> Actualizar seleccionados (' + checkedCount + ')';
+        } else {
+            button.disabled = true;
+            button.querySelector('.htmx-indicator-hide').innerHTML = '<i class="bi bi-arrow-clockwise"></i> Actualizar seleccionados';
+        }
+    };
+
+    // Copy referral URL
+    window.copyReferralUrl = function() {
+        const input = document.getElementById('referralUrlInput');
+        const button = document.getElementById('copyUrlBtn');
+
+        if (input && button) {
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="bi bi-check"></i> Copiado!';
+                button.classList.add('btn-success');
+                button.classList.remove('btn-primary');
+
+                setTimeout(() => {
+                    button.innerHTML = originalHtml;
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-primary');
+                }, 2000);
+            }).catch(err => {
+                console.error('Error copying: ', err);
+            });
+        }
+    };
+
+    // HTMX showToast event handler
+    document.body.addEventListener('showToast', function(evt) {
+        const toastEl = document.getElementById('referidosToast');
+        const toastBody = document.getElementById('toastMessage');
+
+        if (toastEl && toastBody) {
+            toastBody.textContent = evt.detail.message;
+            const header = toastEl.querySelector('.toast-header i');
+
+            if (evt.detail.type === 'warning') {
+                header.className = 'bi bi-exclamation-triangle text-warning me-2';
+            } else if (evt.detail.type === 'info') {
+                header.className = 'bi bi-info-circle text-info me-2';
+            } else if (evt.detail.type === 'error') {
+                header.className = 'bi bi-exclamation-circle text-danger me-2';
+            } else {
+                header.className = 'bi bi-check-circle text-success me-2';
+            }
+
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+    });
+
+    // Re-apply filter after HTMX row updates
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        // Get current active filter
+        const activeTab = document.querySelector('.nav-pills .nav-link.active');
+        if (activeTab) {
+            const currentFilter = activeTab.dataset.filter;
+            // Re-apply filter to new/updated rows
+            setTimeout(() => filterTable(currentFilter), 100);
+        }
+
+        // Update bulk button state after row swap
+        updateBulkButton();
+    });
+
+    // Convert UTC timestamps to local time on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.local-time').forEach(elem => {
+            const utcTime = elem.dataset.utc;
+            if (utcTime) {
+                try {
+                    const date = new Date(utcTime);
+                    elem.textContent = date.toLocaleString();
+                } catch (e) {
+                    console.error('Error parsing date:', e);
+                }
+            }
+        });
+    });
+
+})();
 </script>
 {% endblock %}
