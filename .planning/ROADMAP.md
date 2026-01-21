@@ -14,7 +14,7 @@ Add background task processing with web scraping to validate user cedulas agains
 - [x] **Phase 12: CedulaInfo Model + RBAC** - Data model for census data and role field for access control ✓
 - [x] **Phase 13: Playwright Scraper** - Headless browser scraping with stealth patches ✓
 - [x] **Phase 14: Task Integration + Signals** - Background task wiring with post_save triggers ✓
-- [ ] **Phase 15: Profile Display + Refresh** - Census display and leader refresh buttons
+- [x] **Phase 15: Profile Display + Refresh** - Census display and leader refresh buttons ✓
 - [ ] **Phase 16: Referidos Page Updates** - Census data for referred users
 
 ## Phase Details
@@ -102,8 +102,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — HTMX setup, census section partial, profile display with polling
-- [ ] 15-02-PLAN.md — Leader refresh button, RBAC decorator, rate limiting
+- [x] 15-01-PLAN.md — HTMX setup, census section partial, profile display with polling
+- [x] 15-02-PLAN.md — Leader refresh button, RBAC decorator, rate limiting
 
 ---
 
@@ -131,7 +131,7 @@ Plans:
 | 12. CedulaInfo Model + RBAC | 2/2 | Complete ✓ | 2026-01-20 |
 | 13. Playwright Scraper | 2/2 | Complete ✓ | 2026-01-20 |
 | 14. Task Integration + Signals | 1/1 | Complete ✓ | 2026-01-20 |
-| 15. Profile Display + Refresh | 0/2 | Planned | - |
+| 15. Profile Display + Refresh | 2/2 | Complete ✓ | 2026-01-21 |
 | 16. Referidos Page Updates | 0/TBD | Not started | - |
 
 ---
