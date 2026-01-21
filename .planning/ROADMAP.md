@@ -93,18 +93,17 @@ Plans:
 
 **Goal:** Users see their census data and leaders can refresh for referrals.
 **Depends on:** Phase 14 (tasks populate CedulaInfo)
-**Requirements:** DISP-01, DISP-02, RBAC-04, RBAC-05, RBAC-06, RBAC-07
+**Requirements:** DISP-01, DISP-02, RBAC-04, RBAC-05, RBAC-07 (RBAC-06 deferred to Phase 16)
 **Success Criteria** (what must be TRUE):
   1. User's profile page shows census status (pending, found, error)
   2. User's profile page shows voting location when available
-  3. Leader sees refresh button for individual referred users
-  4. Leader sees bulk refresh button for all referred users
-  5. Regular users cannot access refresh endpoints for other users
-**Plans:** TBD
+  3. Leader sees refresh button for individual users (self and referrals)
+  4. Regular users cannot access refresh endpoints for other users
+**Plans:** 2 plans
 
 Plans:
-- [ ] 15-01: Profile census display
-- [ ] 15-02: Leader refresh buttons and RBAC enforcement
+- [ ] 15-01-PLAN.md — HTMX setup, census section partial, profile display with polling
+- [ ] 15-02-PLAN.md — Leader refresh button, RBAC decorator, rate limiting
 
 ---
 
@@ -112,7 +111,7 @@ Plans:
 
 **Goal:** Leaders see census data for all their referred users with live updates.
 **Depends on:** Phase 15 (census display and RBAC complete)
-**Requirements:** DISP-03, DISP-04, DISP-05
+**Requirements:** DISP-03, DISP-04, DISP-05, RBAC-06
 **Success Criteria** (what must be TRUE):
   1. Referidos table shows census status column for each user
   2. Bulk refresh button visible only to leaders
@@ -132,7 +131,7 @@ Plans:
 | 12. CedulaInfo Model + RBAC | 2/2 | Complete ✓ | 2026-01-20 |
 | 13. Playwright Scraper | 2/2 | Complete ✓ | 2026-01-20 |
 | 14. Task Integration + Signals | 1/1 | Complete ✓ | 2026-01-20 |
-| 15. Profile Display + Refresh | 0/TBD | Not started | - |
+| 15. Profile Display + Refresh | 0/2 | Planned | - |
 | 16. Referidos Page Updates | 0/TBD | Not started | - |
 
 ---
