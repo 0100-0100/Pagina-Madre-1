@@ -1,11 +1,18 @@
+from datetime import timedelta
+
+from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from django_q.tasks import async_task
+
+from .decorators import leader_or_self_required
 from .forms import CustomUserCreationForm, ProfileForm, CustomPasswordChangeForm
-from .models import CedulaInfo
+from .models import CedulaInfo, CustomUser
 
 
 def register(request):
@@ -81,6 +88,8 @@ def profile_view(request):
         'user': request.user,
         'cedula_info': cedula_info,
         'is_polling': is_polling,
+        'is_leader': request.user.role == CustomUser.Role.LEADER,
+        'show_refresh': True,  # On own profile, always show if leader
     })
 
 
@@ -101,7 +110,63 @@ def census_section_view(request):
         'cedula_info': cedula_info,
         'is_polling': is_polling,
         'user': request.user,
+        'is_leader': request.user.role == CustomUser.Role.LEADER,
+        'show_refresh': True,
     })
+
+
+@login_required
+@leader_or_self_required
+def refresh_cedula_view(request, user_id=None):
+    """Trigger cedula validation refresh (leader only).
+
+    Rate limited to 30 seconds between refreshes.
+    Leaders can refresh their own data or data for users they referred.
+    """
+    # Determine target user
+    if user_id is None:
+        target_user = request.user
+    else:
+        target_user = CustomUser.objects.filter(id=user_id).first()
+        if not target_user:
+            return HttpResponseForbidden("Usuario no encontrado.")
+
+    cedula_info = getattr(target_user, 'cedula_info', None)
+
+    # Rate limiting: 30 second cooldown
+    if cedula_info and cedula_info.fetched_at:
+        cooldown_until = cedula_info.fetched_at + timedelta(seconds=30)
+        if timezone.now() < cooldown_until:
+            # Return current section with error message via HX-Trigger
+            response = render(request, 'partials/_census_section.html', {
+                'cedula_info': cedula_info,
+                'is_polling': False,
+                'user': target_user,
+                'is_leader': request.user.role == CustomUser.Role.LEADER,
+                'show_refresh': True,
+            })
+            response['HX-Trigger'] = '{"showToast": {"message": "Espera 30 segundos antes de actualizar de nuevo", "type": "warning"}}'
+            return response
+
+    # Set status to PROCESSING immediately (avoid race condition)
+    if cedula_info:
+        cedula_info.status = CedulaInfo.Status.PROCESSING
+        cedula_info.fetched_at = timezone.now()  # Reset for cooldown
+        cedula_info.save(update_fields=['status', 'fetched_at'])
+
+    # Queue async task
+    async_task('accounts.tasks.validate_cedula', target_user.id, 1)
+
+    # Return updated section
+    response = render(request, 'partials/_census_section.html', {
+        'cedula_info': cedula_info,
+        'is_polling': True,
+        'user': target_user,
+        'is_leader': request.user.role == CustomUser.Role.LEADER,
+        'show_refresh': True,
+    })
+    response['HX-Trigger'] = '{"showToast": {"message": "Actualizacion en progreso", "type": "info"}}'
+    return response
 
 
 class CustomLoginView(LoginView):
