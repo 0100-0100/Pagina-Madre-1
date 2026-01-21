@@ -1,0 +1,126 @@
+{% load humanize %}
+
+<div id="census-section"
+     hx-get="{% url 'census_section' %}"
+     hx-trigger="every 5s [document.querySelector('#census-status').dataset.polling === 'true']"
+     hx-swap="outerHTML">
+
+    {% if not cedula_info %}
+    <!-- No census information available -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-secondary">
+            <i class="bi bi-question-circle"></i> Sin informacion
+        </span>
+        <p class="text-muted mb-0 mt-2">No hay informacion electoral disponible.</p>
+    </div>
+
+    {% elif cedula_info.status == 'PENDING' or cedula_info.status == 'PROCESSING' %}
+    <!-- Polling state - verification in progress -->
+    <div id="census-status" data-polling="true">
+        <span class="badge bg-info">
+            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            Verificando cedula...
+        </span>
+        <p class="text-muted mb-0 mt-2">Consultando con la Registraduria Nacional. Esto puede tomar unos momentos.</p>
+    </div>
+
+    {% elif cedula_info.status == 'ACTIVE' %}
+    <!-- Found - show voting location -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-success mb-3">
+            <i class="bi bi-check-circle"></i> Verificado
+        </span>
+
+        <dl class="row mb-0">
+            {% if cedula_info.departamento %}
+            <dt class="col-sm-4">Departamento</dt>
+            <dd class="col-sm-8">{{ cedula_info.departamento }}</dd>
+            {% endif %}
+
+            {% if cedula_info.municipio %}
+            <dt class="col-sm-4">Municipio</dt>
+            <dd class="col-sm-8">{{ cedula_info.municipio }}</dd>
+            {% endif %}
+
+            {% if cedula_info.puesto %}
+            <dt class="col-sm-4">Puesto de votacion</dt>
+            <dd class="col-sm-8">{{ cedula_info.puesto }}</dd>
+            {% endif %}
+
+            {% if cedula_info.direccion %}
+            <dt class="col-sm-4">Direccion</dt>
+            <dd class="col-sm-8">{{ cedula_info.direccion }}</dd>
+            {% endif %}
+
+            {% if cedula_info.mesa %}
+            <dt class="col-sm-4">Mesa</dt>
+            <dd class="col-sm-8">{{ cedula_info.mesa }}</dd>
+            {% endif %}
+        </dl>
+
+        {% if cedula_info.fetched_at %}
+        <p class="text-muted small mb-0 mt-3">
+            <i class="bi bi-clock"></i> Verificado: {{ cedula_info.fetched_at|naturaltime }}
+        </p>
+        {% endif %}
+    </div>
+
+    {% elif cedula_info.status == 'NOT_FOUND' %}
+    <!-- Cedula not in electoral census -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-warning text-dark">
+            <i class="bi bi-exclamation-triangle"></i> No encontrado
+        </span>
+        <p class="text-muted mb-0 mt-2">Cedula no registrada en el censo electoral.</p>
+    </div>
+
+    {% elif cedula_info.status == 'CANCELLED_DECEASED' %}
+    <!-- Cancelled due to death -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-secondary">
+            <i class="bi bi-dash-circle"></i> Cancelada
+        </span>
+        <p class="text-muted mb-0 mt-2">Cedula cancelada - Fallecido</p>
+    </div>
+
+    {% elif cedula_info.status == 'CANCELLED_OTHER' %}
+    <!-- Cancelled for other reasons -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-secondary">
+            <i class="bi bi-dash-circle"></i> Cancelada
+        </span>
+        <p class="text-muted mb-0 mt-2">
+            {% if cedula_info.novedad %}
+                {{ cedula_info.novedad }}
+            {% else %}
+                Cedula cancelada
+            {% endif %}
+        </p>
+    </div>
+
+    {% elif cedula_info.status == 'ERROR' or cedula_info.status == 'TIMEOUT' or cedula_info.status == 'BLOCKED' %}
+    <!-- Error states -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-danger">
+            <i class="bi bi-x-circle"></i> Error
+        </span>
+        <p class="text-muted mb-0 mt-2">
+            {% if cedula_info.error_message %}
+                {{ cedula_info.error_message }}
+            {% else %}
+                No se pudo verificar la cedula. Intente mas tarde.
+            {% endif %}
+        </p>
+    </div>
+
+    {% else %}
+    <!-- Unknown status (fallback) -->
+    <div id="census-status" data-polling="false">
+        <span class="badge bg-secondary">
+            <i class="bi bi-question-circle"></i> Estado desconocido
+        </span>
+        <p class="text-muted mb-0 mt-2">Estado: {{ cedula_info.get_status_display }}</p>
+    </div>
+    {% endif %}
+
+</div>
