@@ -13,6 +13,24 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from decouple import config, Csv
 
+# Python 3.14 compatibility patch for Django 4.2
+# Django's BaseContext.__copy__ uses copy(super()) which fails in Python 3.14
+# because super() objects no longer have __dict__ for copying
+import sys
+if sys.version_info >= (3, 14):
+    from django.template import context as django_context
+
+    def _patched_base_context_copy(self):
+        """Patched BaseContext.__copy__ that works with Python 3.14+"""
+        duplicate = object.__new__(type(self))
+        # Copy all instance attributes
+        duplicate.__dict__.update(self.__dict__)
+        # Ensure dicts is a shallow copy (not shared reference)
+        duplicate.dicts = self.dicts[:]
+        return duplicate
+
+    django_context.BaseContext.__copy__ = _patched_base_context_copy
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
