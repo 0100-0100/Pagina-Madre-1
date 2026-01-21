@@ -5,6 +5,7 @@ Tasks are executed by Django-Q2 qcluster worker process.
 Run worker: python manage.py qcluster
 """
 import logging
+import os
 from datetime import timedelta
 
 from django.utils import timezone
@@ -12,6 +13,10 @@ from django_q.tasks import schedule
 
 from .models import CedulaInfo, CustomUser
 from .scraper import RegistraduriaScraper
+
+# Allow sync database operations in async context (Playwright's sync API runs an event loop)
+# This is safe for background workers - the check is meant to prevent blocking in web requests
+os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
 
 
 logger = logging.getLogger('django-q')

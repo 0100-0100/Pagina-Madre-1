@@ -68,10 +68,61 @@ def _patched_base_context_copy(self):
     return duplicate
 ```
 
-The patch only applies when running Python 3.14+.
+The patch only applies when running Python 3.14+. Later moved to `accounts/apps.py` `ready()` method to avoid import issues in worker processes.
 
 ### Files Changed
-- `___/___/settings.py` (added monkey-patch)
+- `___/accounts/apps.py` (moved monkey-patch here)
 - `___/accounts/admin.py` (removed broken Django-Q admin customization - unrelated cleanup)
+
+---
+
+## Bug #3: Django-Q background tasks fail with "Function is not defined"
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-21
+**Status:** RESOLVED
+
+### Symptom
+Background tasks queued via Django-Q failed with multiple errors:
+1. `ValueError: Function accounts.tasks.validate_cedula is not defined`
+2. `SynchronousOnlyOperation: You cannot call this from an async context`
+
+### Location
+- `django_q/worker.py:101` (function lookup failure)
+- `accounts/tasks.py` (async context issue)
+
+### Root Cause
+Three interrelated issues:
+
+1. **Python 3.14 multiprocessing `spawn` method**: On macOS, Python 3.14 defaults to `spawn` for multiprocessing. Spawned worker processes start fresh without the parent's `sys.path`, causing `pydoc.locate()` to fail when looking up task functions.
+
+2. **Playwright async event loop**: Playwright's sync API internally runs an asyncio event loop. Django detects this and blocks synchronous database operations with `SynchronousOnlyOperation`.
+
+3. **Import timing**: The Python 3.14 compatibility patch in `settings.py` imported Django modules too early, causing issues in worker process initialization.
+
+### Fix
+Three changes:
+
+1. **Use `fork` instead of `spawn`**: Added multiprocessing configuration in `settings.py`:
+```python
+import multiprocessing
+if multiprocessing.get_start_method(allow_none=True) != 'fork':
+    try:
+        multiprocessing.set_start_method('fork', force=True)
+    except RuntimeError:
+        pass
+```
+
+2. **Allow async-unsafe operations**: Added to `tasks.py`:
+```python
+os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
+```
+
+3. **Moved Python 3.14 patch**: Moved the `BaseContext.__copy__` monkey-patch from `settings.py` to `accounts/apps.py` `ready()` method to ensure proper import timing.
+
+### Files Changed
+- `___/___/settings.py` (multiprocessing fork configuration)
+- `___/accounts/tasks.py` (DJANGO_ALLOW_ASYNC_UNSAFE)
+- `___/accounts/apps.py` (moved Python 3.14 patch here)
 
 ---
