@@ -126,3 +126,167 @@ os.environ.setdefault('DJANGO_ALLOW_ASYNC_UNSAFE', 'true')
 - `___/accounts/apps.py` (moved Python 3.14 patch here)
 
 ---
+
+## Bug #4: Cedula validation task not queued when registering from remote client
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-21
+**Status:** RESOLVED
+
+### Symptom
+When registering via iPhone over WiFi (connecting to `0.0.0.0:8000`), the cedula validation background task was never queued. User's profile showed "Verificando Cedula" status indefinitely. Worked correctly when accessing from local machine via `127.0.0.1:8000`.
+
+### Root Cause
+The `_queue_validation_task` function had no exception handling. Any failure in `async_task()` was silently swallowed, preventing task queuing without any error visibility.
+
+### Fix
+Added comprehensive error handling and logging to `_queue_validation_task`:
+```python
+def _queue_validation_task(user_id):
+    logger.info("on_commit callback fired for user_id=%s", user_id)
+    try:
+        task_id = async_task(...)
+        logger.info("Queued task %s for user_id=%s", task_id, user_id)
+    except Exception as e:
+        logger.error("Failed to queue for user_id=%s: %s", user_id, e, exc_info=True)
+```
+
+### Files Changed
+- `___/accounts/signals.py` (added error handling and logging)
+
+---
+
+## Bug #5: UI shows perpetual loading state when task fails to queue
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-21
+**Status:** RESOLVED
+
+### Symptom
+If a cedula validation task fails to queue (Bug #4) or the worker isn't running, the UI displays "Verificando Cédula" or "Actualizando información" indefinitely. This persists even after logging out and back in, with no way for the user to recover.
+
+### Root Cause
+No timeout or stale-state detection for PENDING/PROCESSING statuses. Once stuck, the UI continues polling forever without any recovery mechanism.
+
+### Fix
+Added stale status detection to CedulaInfo model and automatic reset in views:
+
+1. **New method `is_stale()`**: Checks if status has been PENDING > 2 minutes or PROCESSING > 5 minutes
+2. **New method `reset_if_stale()`**: Resets stale status to ERROR with user-friendly message
+3. **Updated views**: `profile_view`, `census_section_view`, `referral_row_view`, and `referidos_view` now call `reset_if_stale()` before rendering
+
+```python
+def is_stale(self, pending_timeout_minutes=2, processing_timeout_minutes=5):
+    # Uses user.date_joined for PENDING, fetched_at for PROCESSING
+    ...
+
+def reset_if_stale(self):
+    if self.is_stale():
+        self.status = self.Status.ERROR
+        self.error_message = 'La verificación tardó demasiado. Por favor, intenta de nuevo.'
+        self.save(update_fields=['status', 'error_message'])
+        return True
+    return False
+```
+
+### User Experience
+- After 2-5 minutes of no progress, status automatically resets to ERROR
+- User sees "Error" status with message explaining what happened
+- Leader can click refresh button to retry
+
+### Files Changed
+- `___/accounts/models.py` (added `is_stale()` and `reset_if_stale()` methods)
+- `___/accounts/views.py` (added stale checks in 4 views)
+
+---
+
+## Bug #6: Referidos page doesn't auto-update pending row statuses
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-21
+**Status:** RESOLVED
+
+### Symptom
+On the referidos page, when a new referral registers and their cedula validation is processing, the leader must manually refresh the entire page to see the updated status. The row status badge shows "Pendiente" with a spinner but never updates automatically.
+
+### Root Cause
+The referidos page had no HTMX polling mechanism for pending rows. Unlike the profile page (which polls for the user's own status), the referidos table was completely static after initial load.
+
+### Fix
+Implemented batch polling with HTMX out-of-band (OOB) swaps:
+
+1. **New endpoint `pending_referrals_view`**: Returns all PENDING/PROCESSING referral rows with `hx-swap-oob="true"` for in-place updates
+2. **New partial `_pending_referrals.html`**: Renders updated rows with OOB swap attributes plus a self-replacing polling trigger
+3. **Polling trigger in `referidos.html`**: Hidden div that polls every 5 seconds if pending rows exist
+
+**Polling behavior:**
+- Only rows with PENDING/PROCESSING status are fetched and updated
+- Each row stops updating once it reaches a final status (ACTIVE, ERROR, etc.)
+- Polling stops entirely when no rows are pending
+- 5-second interval (same as profile page)
+
+```html
+<!-- Polling trigger - self-replaces to continue or stop polling -->
+<div id="pending-poll-trigger"
+     hx-get="{% url 'pending_referrals' %}"
+     hx-trigger="load delay:5s"
+     hx-swap="outerHTML">
+</div>
+```
+
+### Files Changed
+- `___/accounts/views.py` (added `pending_referrals_view`, updated `referidos_view` to pass `has_pending`)
+- `___/accounts/urls.py` (added `/referidos/pending/` route)
+- `___/templates/partials/_pending_referrals.html` (new - OOB swap response)
+- `___/templates/referidos.html` (added polling trigger)
+
+---
+
+## Bug #7: Multiple issues with status updates and user retry capability
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-21
+**Status:** RESOLVED
+
+### Symptoms
+1. **No retry button for regular users**: When a user's cedula verification fails (ERROR status from stale timeout), they see the error message but have no way to retry. Only leaders could refresh.
+
+2. **Referidos page doesn't update after status transition**: When a referral's status changes from PENDING to ERROR (e.g., via stale check when user views their profile), the leader's referidos page continues showing "Pendiente" because the polling only fetched PENDING/PROCESSING rows.
+
+### Root Causes
+
+**Issue 1**: The census section template only showed the refresh button when `is_leader` was true:
+```django
+{% if show_refresh and is_leader %}
+```
+
+**Issue 2**: The `pending_referrals_view` queried only rows with PENDING/PROCESSING status. If status changed to ERROR elsewhere (e.g., profile page stale check), the row was excluded from poll results and never updated.
+
+### Fix
+
+**Issue 1**: Added retry button for regular users when status is ERROR/TIMEOUT/BLOCKED:
+```django
+{% elif cedula_info and cedula_info.status == 'ERROR' ... %}
+    <button>Reintentar verificacion</button>
+{% endif %}
+```
+
+**Issue 2**: Changed polling approach to track specific row IDs:
+1. Server returns `pending_ids` with list of PENDING/PROCESSING row IDs
+2. Polling trigger includes `?ids=X,Y,Z` to request specific rows
+3. Server fetches those rows regardless of current status
+4. Rows that transitioned to ERROR are still returned and updated via OOB swap
+5. Next poll only includes rows still in PENDING/PROCESSING state
+
+**Issue 3 (follow-up)**: OOB swaps weren't replacing table rows correctly:
+- `hx-swap-oob="true"` uses innerHTML by default
+- For `<tr>` elements, innerHTML doesn't work - need to replace the entire element
+- Changed to `hx-swap-oob="outerHTML"` on both main row and detail row
+
+### Files Changed
+- `___/templates/partials/_census_section.html` (added retry button for users)
+- `___/accounts/views.py` (updated `referidos_view` and `pending_referrals_view` to track/accept IDs)
+- `___/templates/referidos.html` (pass pending_ids to poll trigger)
+- `___/templates/partials/_pending_referrals.html` (include pending_ids in next poll URL)
+
+---

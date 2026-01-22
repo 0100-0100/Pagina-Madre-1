@@ -145,5 +145,23 @@ Users can securely register and authenticate to access the portal. If authentica
 | Django PasswordChangeView extension | Secure password handling with session preservation | ✓ Good |
 | navigator.clipboard API | Modern clipboard access with fallback | ✓ Good |
 
+## Workflow Conventions
+
+### Milestone Completion Checklist
+
+Before running `/gsd:complete-milestone`, always:
+
+1. **Manual Bug Hunting** — Test all new features introduced in the milestone
+   - Walk through each user-facing feature manually
+   - Test edge cases and error states
+   - Document any bugs found in BUGTRACKER.md
+   - Fix all bugs before archiving milestone
+
+2. **Run `/gsd:audit-milestone`** — Verify requirements satisfaction
+
+3. **Then `/gsd:complete-milestone`** — Archive and prepare for next version
+
+This ensures shipped milestones are production-ready, not just "code complete."
+
 ---
-*Last updated: 2026-01-19 after starting v1.3 milestone*
+*Last updated: 2026-01-21 after adding workflow conventions*

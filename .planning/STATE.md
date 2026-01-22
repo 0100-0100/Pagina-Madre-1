@@ -109,28 +109,32 @@ See: .planning/MILESTONES.md for full history
 ## Session Continuity
 
 Last session: 2026-01-21
-Stopped at: Completed 16-01-PLAN.md (Referidos Census Display + Bulk Refresh)
-Resume file: None
-Next: v1.3 Milestone COMPLETE - Ready for production testing or v1.4 planning
+Stopped at: Bug hunting v1.3 - Testing Bug #7 OOB swap fix
+Resume file: .planning/phases/bug-hunting-v1.3/.continue-here.md
+Next: Test Bug #7 fix, continue bug hunting, then /gsd:audit-milestone
 
 ## To Resume Development
 
-**v1.3 Milestone COMPLETE** (2026-01-21)
+**v1.3 Milestone — Bug Hunting Phase** (2026-01-21)
 
-Phase 16 complete (1 plan):
-- 16-01: Referidos table with census status, filters, bulk refresh - COMPLETE
+All phases complete. Now in manual verification before archiving:
 
-Key files created/modified:
-- ___/templates/partials/_referral_row.html - Referral row with status badge and expandable details
-- ___/templates/partials/_empty_response.html - Empty response for toast-only HTMX swaps
-- ___/accounts/views.py - bulk_refresh_view, referral_row_view
-- ___/accounts/urls.py - /bulk-refresh/ and /referido/ routes
-- ___/templates/referidos.html - Complete rewrite with filters, sorting, bulk actions
+**Milestone Completion Checklist:**
+1. [x] All phases complete (16/16)
+2. [ ] Manual bug hunting — test all v1.3 features
+3. [ ] Fix all discovered bugs
+4. [ ] `/gsd:audit-milestone` — verify requirements
+5. [ ] `/gsd:complete-milestone` — archive
 
-**All v1.3 features delivered:**
-- Async background job queue (Django-Q2)
-- Census validation scraping (Playwright)
-- Profile census display with auto-refresh
-- Leader bulk refresh for referrals
-- RBAC controls for leader actions
-- 30-second cooldown on refresh operations
+**Bug Hunting Status:**
+- See BUGTRACKER.md for discovered issues
+- Bugs found: 7 (all resolved, #7 being tested)
+- Currently: Testing Bug #7 OOB swap fix for referidos polling
+
+**v1.3 features to verify:**
+- [ ] Django-Q2 background task queue
+- [ ] Playwright census scraping
+- [ ] Profile census display with HTMX polling
+- [ ] Leader bulk refresh for referrals
+- [ ] RBAC controls
+- [ ] 30-second cooldown
