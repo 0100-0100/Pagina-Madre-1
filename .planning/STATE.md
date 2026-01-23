@@ -108,33 +108,33 @@ See: .planning/MILESTONES.md for full history
 
 ## Session Continuity
 
-Last session: 2026-01-21
-Stopped at: Bug hunting v1.3 - Testing Bug #7 OOB swap fix
+Last session: 2026-01-23
+Stopped at: Bug hunting v1.3 - 8 bugs fixed, testing remaining features
 Resume file: .planning/phases/bug-hunting-v1.3/.continue-here.md
-Next: Test Bug #7 fix, continue bug hunting, then /gsd:audit-milestone
+Next: Continue testing or /gsd:audit-milestone if satisfied
 
 ## To Resume Development
 
-**v1.3 Milestone — Bug Hunting Phase** (2026-01-21)
+**v1.3 Milestone — Bug Hunting Phase** (2026-01-23)
 
 All phases complete. Now in manual verification before archiving:
 
 **Milestone Completion Checklist:**
 1. [x] All phases complete (16/16)
-2. [ ] Manual bug hunting — test all v1.3 features
-3. [ ] Fix all discovered bugs
+2. [x] Manual bug hunting — 8 bugs found and fixed
+3. [x] Fix all discovered bugs — all 8 resolved
 4. [ ] `/gsd:audit-milestone` — verify requirements
 5. [ ] `/gsd:complete-milestone` — archive
 
 **Bug Hunting Status:**
 - See BUGTRACKER.md for discovered issues
-- Bugs found: 7 (all resolved, #7 being tested)
-- Currently: Testing Bug #7 OOB swap fix for referidos polling
+- Bugs found: 8 (all resolved and verified)
+- Key fixes: OOB template wrapper, multiprocessing fork placement
 
 **v1.3 features to verify:**
-- [ ] Django-Q2 background task queue
-- [ ] Playwright census scraping
-- [ ] Profile census display with HTMX polling
-- [ ] Leader bulk refresh for referrals
-- [ ] RBAC controls
-- [ ] 30-second cooldown
+- [x] Django-Q2 background task queue (Bug #3, #8 fixed)
+- [x] Playwright census scraping (working with 2captcha)
+- [x] Profile census display with HTMX polling (Bug #5 fixed)
+- [x] Leader bulk refresh for referrals (Bug #6, #7 fixed)
+- [ ] RBAC controls (needs testing)
+- [ ] 30-second cooldown (needs testing)

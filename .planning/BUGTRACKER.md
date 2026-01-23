@@ -283,10 +283,71 @@ Implemented batch polling with HTMX out-of-band (OOB) swaps:
 - For `<tr>` elements, innerHTML doesn't work - need to replace the entire element
 - Changed to `hx-swap-oob="outerHTML"` on both main row and detail row
 
+**Issue 4 (2026-01-22)**: OOB swaps still not working after outerHTML fix:
+- **Root Cause**: Browser HTML parser mangles naked `<tr>` elements outside of `<table>` context
+- When HTMX receives the response, the browser parses it before HTMX can process OOB swaps
+- Browsers "fix" orphan `<tr>` elements by wrapping or discarding them
+- **Fix**: Wrapped `<tr>` elements in `<template>` tags in `_pending_referrals.html`
+- The `<template>` tag preserves contents exactly without browser modification
+- HTMX specifically looks inside `<template>` tags for OOB swap content
+
 ### Files Changed
 - `___/templates/partials/_census_section.html` (added retry button for users)
 - `___/accounts/views.py` (updated `referidos_view` and `pending_referrals_view` to track/accept IDs)
 - `___/templates/referidos.html` (pass pending_ids to poll trigger)
-- `___/templates/partials/_pending_referrals.html` (include pending_ids in next poll URL)
+- `___/templates/partials/_pending_referrals.html` (include pending_ids in next poll URL, wrap `<tr>` in `<template>` tags)
+
+---
+
+## Bug #8: Registration tasks fail with "Function not defined" while manual refresh works
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-22
+**Status:** RESOLVED
+
+### Symptom
+When registering new users, the Playwright browser (visible in DEBUG=True mode) never appeared for cedula validation. The task was queued but failed silently. Manual refresh button worked correctly and triggered the browser.
+
+### Investigation
+Database inspection revealed the registration tasks were in the Failure table:
+```
+validate_cedula_39 - FAILED at 23:28:03
+validate_cedula_40 - FAILED at 23:40:54
+north-pasta-india-echo - SUCCEEDED at 23:44:10 (manual refresh)
+```
+
+All failures had error: `Function accounts.tasks.validate_cedula is not defined`
+
+### Root Cause
+The multiprocessing `set_start_method('fork')` fix from Bug #3 was placed at line 68 of `settings.py`, after other imports (`pathlib`, `decouple`). By the time it executed, some import had already initialized the multiprocessing context with macOS's default `spawn` method.
+
+With `spawn`, worker processes start fresh without the parent's `sys.path`, causing `pydoc.locate()` to fail when looking up task functions. The fix appeared to work for manual refresh due to timing/caching differences.
+
+### Fix
+Moved the multiprocessing code to the **very first lines** of `settings.py`, before ANY other imports:
+
+```python
+"""Django settings..."""
+
+# CRITICAL: Set multiprocessing start method BEFORE any other imports
+import multiprocessing
+if multiprocessing.get_start_method(allow_none=True) != 'fork':
+    try:
+        multiprocessing.set_start_method('fork', force=True)
+    except RuntimeError:
+        pass
+
+from pathlib import Path
+from decouple import config, Csv
+# ... rest of settings
+```
+
+### Verification
+After fix:
+- `python -c "import django; django.setup(); import multiprocessing; print(multiprocessing.get_start_method())"` → `fork`
+- Registration tasks now trigger browser and complete successfully
+
+### Files Changed
+- `___/___/settings.py` (moved multiprocessing code to top, before all imports)
 
 ---
