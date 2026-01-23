@@ -70,6 +70,17 @@
 
                     {% if referrals %}
 
+                    <!-- Polling trigger for pending rows (hidden, auto-updates via HTMX) -->
+                    {% if has_pending %}
+                    <div id="pending-poll-trigger"
+                         hx-get="{% url 'pending_referrals' %}?ids={{ pending_ids }}"
+                         hx-trigger="load delay:5s"
+                         hx-swap="outerHTML">
+                    </div>
+                    {% else %}
+                    <div id="pending-poll-trigger"></div>
+                    {% endif %}
+
                     <!-- Filter Tabs -->
                     <ul class="nav nav-pills mb-3" role="tablist">
                         <li class="nav-item" role="presentation">
@@ -183,6 +194,13 @@
 <script>
 (function() {
     'use strict';
+
+    // Get IDs of rows currently showing as pending (for polling)
+    window.getPendingRowIds = function() {
+        const pendingRows = document.querySelectorAll('.referral-row[data-status="PENDING"], .referral-row[data-status="PROCESSING"]');
+        const ids = Array.from(pendingRows).map(row => row.dataset.id);
+        return ids.join(',');
+    };
 
     // Toggle detail row expansion
     window.toggleDetail = function(id) {

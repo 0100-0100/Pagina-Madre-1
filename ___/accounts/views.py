@@ -78,6 +78,8 @@ def profile_view(request):
     cedula_info = getattr(request.user, 'cedula_info', None)
     is_polling = False
     if cedula_info:
+        # Check for stale status and reset if needed
+        cedula_info.reset_if_stale()
         is_polling = cedula_info.status in [
             CedulaInfo.Status.PENDING,
             CedulaInfo.Status.PROCESSING
@@ -101,6 +103,8 @@ def census_section_view(request):
     # Determine if polling should continue
     is_polling = False
     if cedula_info:
+        # Check for stale status and reset if needed
+        cedula_info.reset_if_stale()
         is_polling = cedula_info.status in [
             CedulaInfo.Status.PENDING,
             CedulaInfo.Status.PROCESSING
@@ -264,6 +268,11 @@ def referral_row_view(request, referral_id):
     from django.shortcuts import get_object_or_404
     referral = get_object_or_404(CustomUser, id=referral_id, referred_by=request.user)
 
+    # Check for stale status on referral's cedula_info
+    cedula_info = getattr(referral, 'cedula_info', None)
+    if cedula_info:
+        cedula_info.reset_if_stale()
+
     return render(request, 'partials/_referral_row.html', {
         'referral': referral,
         'is_leader': True,
@@ -274,6 +283,16 @@ def referral_row_view(request, referral_id):
 def referidos_view(request):
     """View showing users referred by the current user."""
     referrals = request.user.referrals.prefetch_related('cedula_info').all().order_by('-date_joined')
+
+    # Check for stale status on all referrals' cedula_info
+    pending_ids = []
+    for referral in referrals:
+        cedula_info = getattr(referral, 'cedula_info', None)
+        if cedula_info:
+            cedula_info.reset_if_stale()
+            if cedula_info.status in [CedulaInfo.Status.PENDING, CedulaInfo.Status.PROCESSING]:
+                pending_ids.append(str(referral.id))
+
     is_leader = request.user.role == CustomUser.Role.LEADER
     referral_url = request.build_absolute_uri(reverse('register') + f'?ref={request.user.referral_code}')
 
@@ -281,4 +300,53 @@ def referidos_view(request):
         'referrals': referrals,
         'is_leader': is_leader,
         'referral_url': referral_url,
+        'has_pending': len(pending_ids) > 0,
+        'pending_ids': ','.join(pending_ids),
+    })
+
+
+@login_required
+def pending_referrals_view(request):
+    """Return pending referral rows for HTMX batch polling.
+
+    Accepts ?ids=1,2,3 parameter with row IDs to check.
+    Returns rows with hx-swap-oob="true" to update in place,
+    plus a polling trigger that controls whether to continue polling.
+    """
+    pending_statuses = [CedulaInfo.Status.PENDING, CedulaInfo.Status.PROCESSING]
+
+    # Get IDs from query parameter (sent by client JS)
+    ids_param = request.GET.get('ids', '')
+    if ids_param:
+        # Fetch specific rows by ID (regardless of current status)
+        try:
+            ids = [int(x) for x in ids_param.split(',') if x.strip()]
+        except ValueError:
+            ids = []
+        referrals = request.user.referrals.prefetch_related('cedula_info').filter(id__in=ids)
+    else:
+        # Fallback: fetch rows with PENDING or PROCESSING status
+        referrals = request.user.referrals.prefetch_related('cedula_info').filter(
+            cedula_info__status__in=pending_statuses
+        )
+
+    # Check for stale status and build list of rows to update
+    rows_to_update = []
+    still_pending_ids = []
+    for referral in referrals:
+        cedula_info = getattr(referral, 'cedula_info', None)
+        if cedula_info:
+            cedula_info.reset_if_stale()
+            # After reset, check if still pending
+            if cedula_info.status in pending_statuses:
+                still_pending_ids.append(str(referral.id))
+            rows_to_update.append(referral)
+
+    is_leader = request.user.role == CustomUser.Role.LEADER
+
+    return render(request, 'partials/_pending_referrals.html', {
+        'referrals': rows_to_update,
+        'is_leader': is_leader,
+        'has_pending': len(still_pending_ids) > 0,
+        'pending_ids': ','.join(still_pending_ids),
     })

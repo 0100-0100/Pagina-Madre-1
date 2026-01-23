@@ -2,36 +2,23 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-19)
+See: .planning/PROJECT.md (updated 2026-01-22)
 
 **Core value:** Users can securely register and authenticate to access the portal.
-**Current focus:** v1.3 Async Background Jobs — Cedula Validation
+**Current focus:** Planning next milestone (v1.4)
 
 ## Current Position
 
-Phase: 16 - Referidos Page Updates (COMPLETE)
-Plan: 1 of 1 complete
-Status: v1.3 Milestone COMPLETE - All async background job features shipped
-Last activity: 2026-01-21 — Completed 16-01-PLAN.md (Referidos Census Display + Bulk Refresh)
+Phase: None active
+Plan: N/A
+Status: v1.3 Milestone SHIPPED - Ready for next milestone
+Last activity: 2026-01-22 — v1.3 Async Background Jobs complete
 
-Progress: [##########] 6/6 phases (100%)
-
-## v1.3 Milestone Overview
-
-**Phases:** 11-16 (6 phases total)
-**Requirements:** 31 across 6 categories
-
-| Phase | Name | Requirements | Status |
-|-------|------|--------------|--------|
-| 11 | Django-Q2 Foundation | 4 | Complete |
-| 12 | CedulaInfo Model + RBAC | 9 | Complete (2/2 plans) |
-| 13 | Playwright Scraper | 7 | Complete (2/2 plans) |
-| 14 | Task Integration + Signals | 3 | Complete (1/1 plan) |
-| 15 | Profile Display + Refresh | 6 | Complete (2/2 plans) |
-| 16 | Referidos Page Updates | 2 | Complete (1/1 plan) |
+Progress: Ready for v1.4 planning
 
 ## Milestones Shipped
 
+- **v1.3 Async Background Jobs** (2026-01-22) - Phases 11-16, 9 plans, 32 requirements
 - **v1.2 Referrals** (2026-01-19) - Phases 7-10, 5 plans
 - **v1.1 UI Polish** (2026-01-19) - Phases 4-6, 4 plans
 - **v1.0 MVP** (2026-01-19) - Phases 1-3, 5 plans
@@ -88,53 +75,31 @@ See: .planning/MILESTONES.md for full history
 - Empty response partial for HTMX toast-only responses
 - Expandable table rows with detail sections for voting location display
 
-### v1.3 Research Insights
-
-- Django-Q2 with ORM broker (SQLite compatible) - IMPLEMENTED
-- SQLite WAL mode required to prevent locking - IMPLEMENTED
-- Single worker only (Q_CLUSTER.workers = 1) - IMPLEMENTED
-- Playwright-stealth for F5 bypass (success not guaranteed)
-- transaction.on_commit() for signal-triggered tasks - IMPLEMENTED
-- Fresh browser instance per task (no sharing) - IMPLEMENTED via context isolation
-- F5 CSPM blocks headless requests - graceful failure implemented
-
 ### Pending Todos
 
 - Future: Add semi-automated CAPTCHA fallback (leader manually solves in headed browser mode)
+- Future: Don't refresh NOT_FOUND cedulas (they won't change)
 
 ### Blockers/Concerns
 
-(None - reCAPTCHA solved via 2captcha integration)
+(None)
 
 ## Session Continuity
 
-Last session: 2026-01-23
-Stopped at: Bug hunting v1.3 - 8 bugs fixed, testing remaining features
-Resume file: .planning/phases/bug-hunting-v1.3/.continue-here.md
-Next: Continue testing or /gsd:audit-milestone if satisfied
+Last session: 2026-01-22
+Stopped at: v1.3 Milestone SHIPPED
+Resume file: None
+Next: /gsd:new-milestone to plan v1.4
 
 ## To Resume Development
 
-**v1.3 Milestone — Bug Hunting Phase** (2026-01-23)
+**v1.3 Milestone SHIPPED** (2026-01-22)
 
-All phases complete. Now in manual verification before archiving:
+All 4 milestones complete:
+- v1.0 MVP (Phases 1-3)
+- v1.1 UI Polish (Phases 4-6)
+- v1.2 Referrals (Phases 7-10)
+- v1.3 Async Background Jobs (Phases 11-16)
 
-**Milestone Completion Checklist:**
-1. [x] All phases complete (16/16)
-2. [x] Manual bug hunting — 8 bugs found and fixed
-3. [x] Fix all discovered bugs — all 8 resolved
-4. [ ] `/gsd:audit-milestone` — verify requirements
-5. [ ] `/gsd:complete-milestone` — archive
-
-**Bug Hunting Status:**
-- See BUGTRACKER.md for discovered issues
-- Bugs found: 8 (all resolved and verified)
-- Key fixes: OOB template wrapper, multiprocessing fork placement
-
-**v1.3 features to verify:**
-- [x] Django-Q2 background task queue (Bug #3, #8 fixed)
-- [x] Playwright census scraping (working with 2captcha)
-- [x] Profile census display with HTMX polling (Bug #5 fixed)
-- [x] Leader bulk refresh for referrals (Bug #6, #7 fixed)
-- [ ] RBAC controls (needs testing)
-- [ ] 30-second cooldown (needs testing)
+**Next steps:**
+- `/gsd:new-milestone` to define v1.4 goals and requirements

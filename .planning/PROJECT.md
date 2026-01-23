@@ -2,40 +2,35 @@
 
 ## What This Is
 
-A Django-based authentication portal for Colombian users with professional Bootstrap 5 styling. External users can register with their cédula (6-10 digits validated), phone number, and personal details, then log in to access protected pages. All routes require authentication, with a clean login/register flow featuring real-time form validation and responsive design.
+A Django-based authentication portal for Colombian users with professional Bootstrap 5 styling and automated cédula validation. External users can register with their cédula (6-10 digits validated), phone number, and personal details, then log in to access protected pages. The system auto-validates cédulas against Registraduría's electoral census via background tasks, displays voting location data, and provides leaders with bulk refresh capabilities for their referrals.
 
 ## Core Value
 
 Users can securely register and authenticate to access the portal. If authentication doesn't work reliably and securely, nothing else matters.
 
-## Current Milestone: v1.3 Async Background Jobs
-
-**Goal:** Validate user cédulas against Registraduría's electoral census and store voting location data via background tasks.
-
-**Target features:**
-- Django-Q2 background task queue (SQLite-compatible)
-- Playwright headless browser for JavaScript-rendered scraping
-- CedulaInfo model with status tracking (active/cancelled/not found)
-- Auto-validation on registration + manual refresh
-
 ## Current State
 
-**Shipped:** v1.2 Referrals (2026-01-19)
+**Shipped:** v1.3 Async Background Jobs (2026-01-22)
 
 **Tech stack:**
 - Django 4.2 LTS
 - Python 3.14
-- SQLite database
+- SQLite database with WAL mode
+- Django-Q2 background task queue
+- Playwright headless browser + 2captcha
 - python-decouple for environment variables
 - Bootstrap 5.3.8 via jsDelivr CDN
+- HTMX 2.0.4 for dynamic updates
 
 **Codebase:**
-- 1,828 lines of code (Python + HTML)
-- 7 HTML templates (base.html + 6 pages)
-- Custom User model with cedula validation and referral tracking
+- ~4,300 lines of code (Python + HTML)
+- 9 HTML templates + 3 partials
+- Custom User model with cédula validation, referral tracking, and role field
+- CedulaInfo model with 9 status choices for census data
 - Global login-required middleware
 - Real-time form validation with input filtering
-- Referral system with shareable links and progress tracking
+- Background task processing with exponential backoff retry
+- Leader RBAC for census refresh capabilities
 
 ## Requirements
 
@@ -68,17 +63,18 @@ Users can securely register and authenticate to access the portal. If authentica
 - ✓ Profile page for setting/updating referral goal — v1.2
 - ✓ Referidos page with table (Nombre, Cédula, Teléfono, Fecha de registro) — v1.2
 - ✓ Navigation links from home to Perfil and Referidos pages — v1.2
+- ✓ Background task queue system (Django-Q2 with ORM broker) — v1.3
+- ✓ Playwright-based scraper for Registraduría census lookup — v1.3
+- ✓ CedulaInfo model to store voting/census data (9 status choices) — v1.3
+- ✓ Auto-trigger validation after user registration (post_save signal) — v1.3
+- ✓ Manual refresh option for census data (leader RBAC) — v1.3
+- ✓ Handle all response types (active, cancelled, not found, error) — v1.3
+- ✓ HTMX-powered status display with conditional polling — v1.3
+- ✓ Leader bulk refresh for referrals (max 10, 30-second cooldown) — v1.3
 
 ### Active
 
-**v1.3 Async Background Jobs — Cédula Validation & Data Gathering**
-
-- [ ] Background task queue system (Django-Q2)
-- [ ] Playwright-based scraper for Registraduría census lookup
-- [ ] CedulaInfo model to store voting/census data
-- [ ] Auto-trigger validation after user registration
-- [ ] Manual refresh option for census data
-- [ ] Handle all response types (active, cancelled, not found, error)
+(None — ready for v1.4 planning)
 
 ### Out of Scope
 
@@ -99,19 +95,22 @@ Users can securely register and authenticate to access the portal. If authentica
 - External/public users registering
 - Small scale (<100 users)
 - Colombian users (cédula validation for Colombia)
+- Leaders can view and refresh census data for their referrals
 
 **Security context:**
 - Storing PII (cédula, phone, name) — requires proper data handling
 - Data policy acceptance required at registration
 - Session security: HTTPONLY, SAMESITE cookies
 - CSRF protection on all forms
+- RBAC: USER vs LEADER roles (superadmin-only role assignment)
 
 **UI context:**
 - Bootstrap 5 styling complete on all pages
 - Spanish language labels throughout
-- 7 templates: base.html, login.html, register.html, home.html, profile.html, password_change.html, referidos.html
+- 9 templates + 3 partials
 - Real-time form validation with input filtering
 - Bootstrap Icons for navigation
+- HTMX for dynamic census status updates
 
 ## Constraints
 
@@ -144,6 +143,15 @@ Users can securely register and authenticate to access the portal. If authentica
 | filter().first() for referral lookup | Graceful handling of invalid codes | ✓ Good |
 | Django PasswordChangeView extension | Secure password handling with session preservation | ✓ Good |
 | navigator.clipboard API | Modern clipboard access with fallback | ✓ Good |
+| ORM broker with SQLite for Django-Q2 | <100 users scenario, no Redis needed | ✓ Good |
+| Single worker (workers=1) | Critical for SQLite write safety | ✓ Good |
+| WAL mode via connection_created signal | Enables concurrent web + qcluster access | ✓ Good |
+| Browser singleton with context isolation | Performance + clean state per scrape | ✓ Good |
+| 2captcha for reCAPTCHA | Fully automated census lookup | ✓ Good |
+| dispatch_uid for signal deduplication | Prevents duplicate task queueing | ✓ Good |
+| HTMX conditional polling | Stops on final states, reduces server load | ✓ Good |
+| leader_or_self_required decorator | Self-access first, then role-based referral access | ✓ Good |
+| 30-second server-side cooldown | Uses fetched_at timestamp, prevents refresh spam | ✓ Good |
 
 ## Workflow Conventions
 
@@ -164,4 +172,4 @@ Before running `/gsd:complete-milestone`, always:
 This ensures shipped milestones are production-ready, not just "code complete."
 
 ---
-*Last updated: 2026-01-21 after adding workflow conventions*
+*Last updated: 2026-01-22 after v1.3 milestone*

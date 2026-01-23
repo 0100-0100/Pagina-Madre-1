@@ -10,6 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+# CRITICAL: Set multiprocessing start method BEFORE any other imports
+# Python 3.14 on macOS defaults to 'spawn' which causes worker import failures
+# Must be at the very top of settings.py before pathlib, decouple, etc.
+import multiprocessing
+if multiprocessing.get_start_method(allow_none=True) != 'fork':
+    try:
+        multiprocessing.set_start_method('fork', force=True)
+    except RuntimeError:
+        pass  # Already set by another module
+
 from pathlib import Path
 from decouple import config, Csv
 
@@ -61,16 +71,6 @@ INSTALLED_APPS = [
 # 3. Increase 'workers' to match CPU cores
 # 4. Remove WAL mode signal (PostgreSQL handles concurrency natively)
 # 5. Consider separate broker database for high-throughput scenarios
-
-# Multiprocessing start method for Python 3.14 compatibility
-# 'spawn' (default on macOS) causes issues with pydoc.locate in worker processes
-# 'fork' preserves parent process state including sys.path
-import multiprocessing
-if multiprocessing.get_start_method(allow_none=True) != 'fork':
-    try:
-        multiprocessing.set_start_method('fork', force=True)
-    except RuntimeError:
-        pass  # Already set
 
 Q_CLUSTER = {
     'name': 'pagina-madre',

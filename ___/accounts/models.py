@@ -175,3 +175,49 @@ class CedulaInfo(models.Model):
 
     def __str__(self):
         return f"{self.user.cedula} - {self.get_status_display()}"
+
+    def is_stale(self, pending_timeout_minutes=2, processing_timeout_minutes=5):
+        """
+        Check if status is stuck in PENDING or PROCESSING for too long.
+
+        Returns True if the status appears stale (task likely failed to queue
+        or worker isn't processing). Used to detect and recover from stuck states.
+
+        Args:
+            pending_timeout_minutes: Max time for PENDING status (default 2 min)
+            processing_timeout_minutes: Max time for PROCESSING status (default 5 min)
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+
+        now = timezone.now()
+
+        if self.status == self.Status.PENDING:
+            # For PENDING, use user's date_joined as creation proxy
+            threshold = self.user.date_joined + timedelta(minutes=pending_timeout_minutes)
+            return now > threshold
+
+        if self.status == self.Status.PROCESSING:
+            # For PROCESSING, use fetched_at (set when refresh triggered)
+            if self.fetched_at:
+                threshold = self.fetched_at + timedelta(minutes=processing_timeout_minutes)
+                return now > threshold
+            else:
+                # No fetched_at but PROCESSING - use date_joined as fallback
+                threshold = self.user.date_joined + timedelta(minutes=processing_timeout_minutes)
+                return now > threshold
+
+        return False
+
+    def reset_if_stale(self):
+        """
+        Reset status to ERROR if stale, allowing user to retry.
+
+        Returns True if status was reset, False otherwise.
+        """
+        if self.is_stale():
+            self.status = self.Status.ERROR
+            self.error_message = 'La verificación tardó demasiado. Por favor, intenta de nuevo.'
+            self.save(update_fields=['status', 'error_message'])
+            return True
+        return False

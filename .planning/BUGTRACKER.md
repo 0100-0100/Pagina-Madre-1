@@ -351,3 +351,65 @@ After fix:
 - `___/___/settings.py` (moved multiprocessing code to top, before all imports)
 
 ---
+
+## Bug #9: Bulk refresh tasks fail with "Function not defined" due to zombie qcluster
+
+**Milestone:** v1.3 Async Background Jobs
+**Date:** 2026-01-23
+**Status:** RESOLVED
+
+### Symptom
+Bulk refresh on referidos page queued tasks, but all failed with `Function accounts.tasks.validate_cedula is not defined`. No browser opened. All rows remained in loading state until they eventually updated to ERROR. Strangely, a single profile refresh task succeeded earlier in the same session.
+
+### Investigation
+1. Qcluster log showed first task processed successfully (tennis-timing-vegan-oranges)
+2. Bulk tasks were enqueued (visible in Django server log) but never appeared in qcluster worker log
+3. All bulk tasks ended up in Failure table with "Function not defined" error
+4. `ps aux | grep qcluster` revealed an OLD qcluster process from Monday still running alongside the new one
+
+### Root Cause
+An old qcluster process from a previous session (Monday) was still running with corrupted worker state. When tasks were queued, some were picked up by the old zombie process whose worker couldn't locate the function (likely due to stale imports or crashed worker).
+
+The first successful task happened to be processed by the new qcluster's worker, while subsequent tasks were processed by the old zombie process.
+
+### Fix
+Kill all qcluster processes before starting a new one:
+```bash
+pkill -9 -f "manage.py qcluster"
+```
+
+After killing the old process and restarting, all tasks (including bulk refresh) work correctly.
+
+### Recommendation
+Add a safeguard check in qcluster startup or create a helper script that kills existing processes before starting. Consider adding a startup warning in development if multiple qcluster processes are detected.
+
+### Files Changed
+None (operational fix, no code changes)
+
+---
+
+## Future Improvement: Don't refresh NOT_FOUND cedulas
+
+**Type:** Enhancement (not a bug)
+**Date:** 2026-01-23
+**Status:** NOTED FOR FUTURE
+
+### Context
+During bug hunting Test 1, user noted: "we don't want to refresh in the case that 'Cedula no registrada en el censo electoral'"
+
+### Rationale
+If a cedula is NOT_FOUND in the Registraduría census, refreshing it will just return NOT_FOUND again. Unlike ERROR status (which might succeed on retry), NOT_FOUND is a definitive answer from the source.
+
+### Current Behavior
+- Checkboxes appear for rows with: ERROR, TIMEOUT, BLOCKED, NOT_FOUND, PENDING
+- NOT_FOUND can be selected for bulk refresh
+
+### Proposed Change
+- Exclude NOT_FOUND status from bulk refresh checkbox visibility (same as ACTIVE/CANCELLED)
+- Maybe show NOT_FOUND with a different styling to indicate it's a final state
+
+### Implementation Location
+- `___/templates/partials/_referral_row.html` - checkbox visibility condition
+- `___/accounts/views.py:bulk_refresh_view` - skip NOT_FOUND in server-side loop (already skips ACTIVE/CANCELLED)
+
+---

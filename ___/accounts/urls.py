@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     register, CustomLoginView, home, profile_view, CustomPasswordChangeView,
     referidos_view, census_section_view, refresh_cedula_view,
-    bulk_refresh_view, referral_row_view
+    bulk_refresh_view, referral_row_view, pending_referrals_view
 )
 from django.contrib.auth.views import LogoutView
 
@@ -17,6 +17,7 @@ urlpatterns = [
     path('refrescar-cedula/<int:user_id>/', refresh_cedula_view, name='refresh_cedula_user'),
     path('cambiar-password/', CustomPasswordChangeView.as_view(), name='password_change'),
     path('referidos/', referidos_view, name='referidos'),
+    path('referidos/pending/', pending_referrals_view, name='pending_referrals'),
     path('bulk-refresh/', bulk_refresh_view, name='bulk_refresh'),
     path('referido/<int:referral_id>/', referral_row_view, name='referral_row'),
 ]

@@ -147,6 +147,24 @@
             Actualizar
         </button>
     </div>
+    {% elif cedula_info and cedula_info.status == 'ERROR' or cedula_info.status == 'TIMEOUT' or cedula_info.status == 'BLOCKED' %}
+    <!-- Retry button for regular users when verification failed -->
+    <div class="mt-3">
+        <button hx-post="{% url 'refresh_cedula' %}"
+                hx-target="#census-section"
+                hx-swap="outerHTML"
+                hx-disabled-elt="this"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                class="btn btn-sm btn-outline-primary">
+            <span class="htmx-indicator">
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+            </span>
+            <span class="htmx-indicator-hide">
+                <i class="bi bi-arrow-clockwise"></i>
+            </span>
+            Reintentar verificacion
+        </button>
+    </div>
     {% endif %}
 
 </div>

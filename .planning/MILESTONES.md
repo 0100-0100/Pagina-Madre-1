@@ -1,5 +1,33 @@
 # Project Milestones: ___
 
+## v1.3 Async Background Jobs (Shipped: 2026-01-22)
+
+**Delivered:** Background task queue with automated cédula validation against Registraduría electoral census, featuring auto-trigger on registration, HTMX-powered status display, and leader bulk refresh capabilities.
+
+**Phases completed:** 11-16 (9 plans total)
+
+**Key accomplishments:**
+
+- Django-Q2 background task queue with SQLite ORM broker and WAL mode for concurrent access
+- CedulaInfo model with 9 status choices tracking full validation lifecycle
+- Playwright headless browser scraper with 2captcha reCAPTCHA integration
+- Auto-validation on registration via post_save signal with exponential backoff retry
+- HTMX-powered census display with conditional polling (stops on final states)
+- Leader RBAC: view referral census data, manual refresh, bulk refresh (max 10)
+- 9 bugs found and fixed during manual testing phase
+
+**Stats:**
+
+- ~1,962 lines Python + ~2,337 lines HTML
+- 6 phases, 9 plans, 32 requirements
+- 4 days from start to ship (2026-01-19 → 2026-01-22)
+
+**Git range:** `v1.2` → `v1.3`
+
+**What's next:** Define v1.4 milestone with `/gsd:new-milestone`
+
+---
+
 ## v1.2 Referrals (Shipped: 2026-01-19)
 
 **Delivered:** Referral tracking system with shareable links, profile management, and referral details page.

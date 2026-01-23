@@ -1,0 +1,207 @@
+{% load humanize %}
+{# Batch update for pending referral rows with OOB swaps #}
+
+{# Polling trigger - continues polling if still has pending rows #}
+{% if has_pending %}
+<div id="pending-poll-trigger"
+     hx-get="{% url 'pending_referrals' %}?ids={{ pending_ids }}"
+     hx-trigger="load delay:5s"
+     hx-swap="outerHTML"
+     hx-swap-oob="true">
+</div>
+{% else %}
+{# No more pending - replace trigger with empty div to stop polling #}
+<div id="pending-poll-trigger" hx-swap-oob="true"></div>
+{% endif %}
+
+{# Update each referral row via OOB swap - wrapped in template to prevent browser HTML mangling #}
+{% for referral in referrals %}
+{% with cedula_info=referral.cedula_info %}
+{% with status=cedula_info.status|default:'NONE' %}
+
+{# Main row with OOB swap - template prevents browser from modifying naked <tr> elements #}
+<template>
+<tr class="referral-row"
+    id="row-{{ referral.id }}"
+    hx-swap-oob="outerHTML"
+    data-id="{{ referral.id }}"
+    data-status="{{ status }}"
+    data-name="{{ referral.nombre_completo }}"
+    data-date="{{ referral.date_joined|date:'Y-m-d' }}"
+    onclick="toggleDetail({{ referral.id }})"
+    aria-expanded="false">
+
+    {# Checkbox column (only if leader and can refresh) #}
+    {% if is_leader and status != 'ACTIVE' and status != 'CANCELLED_DECEASED' and status != 'CANCELLED_OTHER' %}
+    <td onclick="event.stopPropagation();">
+        <input type="checkbox"
+               name="ids"
+               value="{{ referral.id }}"
+               class="form-check-input referral-checkbox"
+               onchange="updateBulkButton()">
+    </td>
+    {% elif is_leader %}
+    <td></td>
+    {% endif %}
+
+    {# Name column #}
+    <td>{{ referral.nombre_completo|default:"-" }}</td>
+
+    {# Cedula column #}
+    <td>{{ referral.cedula }}</td>
+
+    {# Registration date column #}
+    <td>{{ referral.date_joined|date:"d/m/Y" }}</td>
+
+    {# Status badge column #}
+    <td>
+        {% if status == 'ACTIVE' %}
+            <span class="badge bg-success">
+                <i class="bi bi-check-circle"></i> Encontrado
+            </span>
+        {% elif status == 'PENDING' or status == 'PROCESSING' %}
+            <span class="badge bg-warning text-dark">
+                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                Pendiente
+            </span>
+        {% elif status == 'NOT_FOUND' %}
+            <span class="badge bg-secondary">
+                <i class="bi bi-dash-circle"></i> No encontrado
+            </span>
+        {% elif status == 'CANCELLED_DECEASED' %}
+            <span class="badge bg-secondary">
+                <i class="bi bi-dash-circle"></i> Cancelada
+            </span>
+        {% elif status == 'CANCELLED_OTHER' %}
+            <span class="badge bg-secondary">
+                <i class="bi bi-dash-circle"></i> Cancelada
+            </span>
+        {% elif status == 'ERROR' or status == 'TIMEOUT' or status == 'BLOCKED' %}
+            <span class="badge bg-danger">
+                <i class="bi bi-x-circle"></i> Error
+            </span>
+        {% else %}
+            <span class="badge bg-secondary">
+                <i class="bi bi-question-circle"></i> Sin informacion
+            </span>
+        {% endif %}
+        <i class="bi bi-chevron-right toggle-icon ms-2"></i>
+    </td>
+</tr>
+</template>
+
+{# Detail row with OOB swap - also wrapped in template #}
+<template>
+<tr class="detail-row" id="detail-{{ referral.id }}" hx-swap-oob="outerHTML" style="display: none;">
+    <td colspan="{% if is_leader %}5{% else %}4{% endif %}">
+        <div class="p-3">
+            {% if status == 'ACTIVE' and cedula_info %}
+                {# Show voting location #}
+                <h6 class="mb-3"><i class="bi bi-geo-alt"></i> Informacion Electoral</h6>
+                <dl class="row mb-0">
+                    {% if cedula_info.departamento %}
+                    <dt class="col-sm-3">Departamento</dt>
+                    <dd class="col-sm-9">{{ cedula_info.departamento }}</dd>
+                    {% endif %}
+
+                    {% if cedula_info.municipio %}
+                    <dt class="col-sm-3">Municipio</dt>
+                    <dd class="col-sm-9">{{ cedula_info.municipio }}</dd>
+                    {% endif %}
+
+                    {% if cedula_info.puesto %}
+                    <dt class="col-sm-3">Puesto de votacion</dt>
+                    <dd class="col-sm-9">{{ cedula_info.puesto }}</dd>
+                    {% endif %}
+
+                    {% if cedula_info.direccion %}
+                    <dt class="col-sm-3">Direccion</dt>
+                    <dd class="col-sm-9">{{ cedula_info.direccion }}</dd>
+                    {% endif %}
+
+                    {% if cedula_info.mesa %}
+                    <dt class="col-sm-3">Mesa</dt>
+                    <dd class="col-sm-9">{{ cedula_info.mesa }}</dd>
+                    {% endif %}
+                </dl>
+
+                {% if cedula_info.fetched_at %}
+                <p class="text-muted small mb-0 mt-2">
+                    <i class="bi bi-clock"></i>
+                    <span class="local-time" data-utc="{{ cedula_info.fetched_at.isoformat }}">
+                        {{ cedula_info.fetched_at|naturaltime }}
+                    </span>
+                </p>
+                {% endif %}
+
+            {% elif status == 'ERROR' or status == 'TIMEOUT' or status == 'BLOCKED' %}
+                {# Show error hint #}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% if cedula_info.error_message %}
+                        {{ cedula_info.error_message }}
+                    {% else %}
+                        Error al consultar - intenta de nuevo mas tarde
+                    {% endif %}
+                </p>
+
+            {% elif status == 'CANCELLED_DECEASED' or status == 'CANCELLED_OTHER' %}
+                {# Show cancellation info #}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    {% if cedula_info.novedad %}
+                        {{ cedula_info.novedad }}
+                    {% else %}
+                        Cedula cancelada
+                    {% endif %}
+                </p>
+
+            {% elif status == 'NOT_FOUND' %}
+                {# Not in census #}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Cedula no registrada en el censo electoral
+                </p>
+
+            {% elif status == 'PENDING' or status == 'PROCESSING' %}
+                {# Processing #}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-hourglass"></i>
+                    Consultando con la Registraduria Nacional...
+                </p>
+
+            {% else %}
+                {# No data #}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    No hay informacion electoral disponible
+                </p>
+            {% endif %}
+
+            {# Per-referral refresh button (if leader and can refresh) #}
+            {% if is_leader and status != 'ACTIVE' and status != 'CANCELLED_DECEASED' and status != 'CANCELLED_OTHER' %}
+            <div class="mt-3">
+                <button hx-post="{% url 'refresh_cedula_user' referral.id %}"
+                        hx-target="#row-{{ referral.id }}"
+                        hx-swap="outerHTML"
+                        hx-disabled-elt="this"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        class="btn btn-sm btn-outline-secondary">
+                    <span class="htmx-indicator">
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                    </span>
+                    <span class="htmx-indicator-hide">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </span>
+                    Actualizar
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+</template>
+
+{% endwith %}
+{% endwith %}
+{% endfor %}
